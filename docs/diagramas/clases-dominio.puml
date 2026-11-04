@@ -213,15 +213,18 @@ package "chess::domain" {
   ' ===================== Motor de reglas =====================
   package "Motor de reglas" {
     class RulesEngine <<Facade>> <<no copiable>> {
-      +RulesEngine()
+      +RulesEngine(registry: const PieceRegistry&)
       +legalMoves(state: const GameState&, from: Position): vector<Move>
       +apply(state: const GameState&, move: const Move&): GameState
       +status(state: const GameState&): GameStatus
+      +canPromoteTo(type: const PieceTypeId&): bool
+      +promotionChoices(color: Color): vector<Piece>
     }
     note right of RulesEngine
-      Fase 7: RulesEngine(registry: const PieceRegistry&),
-      crea la PieceFactory (promoción) y agrega
-      canPromoteTo(id: PieceTypeId): bool (D-08, D-13).
+      Crea la PieceFactory a partir del registro.
+      La promoción la valida el trait isPromotable
+      (D-08): una pieza nueva promovible no toca
+      ni PawnRule ni el motor.
     end note
 
     class MoveGenerator {
@@ -235,11 +238,13 @@ package "chess::domain" {
     }
 
     class MoveApplier {
+      +MoveApplier(factory: const PieceFactory&)
       +apply(state: const GameState&, move: const Move&): GameState
     }
     note bottom of MoveApplier
-      Fase 7: recibe la PieceFactory
-      (promoción) y resuelve enroque y al paso.
+      Con promotion() elegida crea la pieza
+      nueva con la PieceFactory.
+      Fase 7.3/7.4: enroque y al paso.
     end note
 
     class LegalMoveFilter {
@@ -305,6 +310,8 @@ StartingPositionProvider ..> PieceFactory : usa
 StartingPositionProvider ..> Board : crea
 
 ' Motor
+RulesEngine "1" --> "1" PieceRegistry : promotableTypes
+RulesEngine "1" *-- "1" PieceFactory
 RulesEngine "1" *-- "1" MoveGenerator
 RulesEngine "1" *-- "1" AttackDetector
 RulesEngine "1" *-- "1" MoveApplier
@@ -313,6 +320,7 @@ RulesEngine "1" *-- "1" GameStatusEvaluator
 RulesEngine ..> GameStatus
 MoveGenerator ..> MovementRule : recorre las reglas de la pieza
 AttackDetector ..> MovementRule : attackedSquares
+MoveApplier "1" --> "1" PieceFactory : promoción
 LegalMoveFilter "1" --> "1" MoveApplier
 LegalMoveFilter "1" --> "1" AttackDetector
 GameStatusEvaluator "1" --> "1" AttackDetector

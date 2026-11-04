@@ -5,7 +5,8 @@
 namespace chess::application {
 
 ports::MoveResult GameOverPhase::tryMove(ChessGame& /*game*/, domain::Position /*from*/,
-                                         domain::Position /*to*/) const {
+                                         domain::Position /*to*/,
+                                         const std::optional<domain::PieceTypeId>& /*promotion*/) const {
     return ports::MoveResult::failure(ports::MoveError::GameOver);
 }
 

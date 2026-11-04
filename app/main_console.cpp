@@ -36,7 +36,7 @@ int main() {
     domain::StandardPieces::registerAll(registry);
     const domain::PieceFactory factory(registry);
     const domain::StandardStartingPosition startingPosition;
-    const domain::RulesEngine rules;
+    const domain::RulesEngine rules(registry);
 
     // Adaptador de salida. Se declara antes que el juego: el observer tiene que vivir más que él.
     adapters::console::ConsoleRenderer renderer(std::cout);

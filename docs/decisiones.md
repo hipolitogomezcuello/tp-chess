@@ -239,6 +239,26 @@ reloj en pausa) u otras operaciones que dependan de la fase. Si las fases tuvier
 (quién abandonó), habría que guardarlas y D-10 dejaría de valer.
 **Dónde en el código:** `application/GamePhase.hpp`, `InProgressPhase`, `GameOverPhase`, `ChessGame`.
 
+## D-19 — El puerto ofrece las piezas de promoción; la UI no conoce los tipos
+**Estado:** vigente
+**Qué:** `GameService::promotionChoices()` devuelve las `Piece` (símbolo + tipo + color) a las que puede
+promover el bando que mueve, sacadas del registro por el trait `isPromotable`. La consola busca entre
+ellas la que tiene el símbolo (`q`) o el id (`queen`) que escribió el jugador y manda su `PieceTypeId`.
+Si la jugada promueve y no se eligió pieza, `makeMove` devuelve `PromotionRequired`.
+**Por qué:** la alternativa directa era un `switch ('q' → reina, 'r' → torre…)` en el adaptador, que
+viola OCP: una pieza nueva promovible (el Arzobispo) obligaría a editar cada UI. Así la UI de raylib
+también puede dibujar las opciones con `symbol()` sin saber cuáles son. Se devuelve `Piece` y no solo
+`PieceTypeId` porque la UI necesita el símbolo y el puerto no expone el registro. Pedir la pieza como
+parámetro de `makeMove` (en lugar de una segunda llamada "elegir pieza") mantiene la jugada atómica y
+sin un estado intermedio "esperando promoción".
+**Cuándo se rompería:** si dos piezas promovibles compartieran símbolo, la letra sería ambigua (la
+consola toma la primera; el id completo siempre funciona). Si la UI quisiera preguntar la pieza
+*después* de soltar el peón con el mouse, alcanza con que el adaptador espere antes de llamar a
+`makeMove` (como hace `RaylibUI`); si la elección tuviera que vivir en el núcleo, habría que agregar
+una fase "esperando promoción" (D-18).
+**Dónde en el código:** `GameService::promotionChoices`, `RulesEngine::promotionChoices`/`canPromoteTo`,
+`ChessGame::withPromotionChoice`, `ConsoleUI::findPromotionChoice`.
+
 <!-- Próximas decisiones (las completan los agentes cuando las implementen):
      Command + Memento para deshacer/rehacer (snapshot completo vs. delta)
      raylib como UI gráfica (frente a SFML o Qt) -->

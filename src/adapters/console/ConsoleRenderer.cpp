@@ -53,7 +53,13 @@ void ConsoleRenderer::render(const domain::GameState& state) {
 void ConsoleRenderer::onMoveMade(const domain::Move& move, const domain::GameState& state) {
     const char separator = move.kind() == domain::MoveKind::Capture ? 'x' : '-';
     out_ << "\nJugada: " << AlgebraicNotation::format(move.from()) << separator
-         << AlgebraicNotation::format(move.to()) << '\n';
+         << AlgebraicNotation::format(move.to());
+    if (move.promotion()) {
+        // La pieza nueva ya está en el destino: se muestra su símbolo, sin mirar el tipo.
+        out_ << '=' << static_cast<char>(std::toupper(static_cast<unsigned char>(
+                           state.board().pieceAt(move.to())->symbol())));
+    }
+    out_ << '\n';
     render(state);
 }
 

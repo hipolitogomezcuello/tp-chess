@@ -15,13 +15,13 @@ skinparam class {
 ' ===================== Puertos =====================
 package "chess::ports" {
   interface GameService <<Port>> {
-    +{abstract} makeMove(from: Position, to: Position): MoveResult
+    +{abstract} makeMove(from: Position, to: Position, promotion: optional<PieceTypeId> = nullopt): MoveResult
     +{abstract} legalMovesFrom(from: Position): vector<Move>
     +{abstract} state(): const GameState&
     +{abstract} status(): GameStatus
+    +{abstract} promotionChoices(): vector<Piece>
     +{abstract} addObserver(observer: GameObserver&): void
     .. fase 7 ..
-    +{abstract} makeMove(..., promotion: optional<PieceTypeId>) «7.2»
     +{abstract} undo(): bool «7.5»
     +{abstract} redo(): bool «7.5»
   }
@@ -47,8 +47,8 @@ package "chess::ports" {
     NotYourTurn
     IllegalMove
     GameOver
-    .. fase 7 ..
-    PromotionRequired «7.2»
+    PromotionRequired
+    InvalidPromotion
   }
 }
 
@@ -57,15 +57,17 @@ package "chess::application" {
   class ChessGame {
     +ChessGame(rules: const RulesEngine&, initialState: GameState)
     -- GameService --
-    +makeMove(from: Position, to: Position): MoveResult
+    +makeMove(from: Position, to: Position, promotion: optional<PieceTypeId> = nullopt): MoveResult
     +legalMovesFrom(from: Position): vector<Move>
     +state(): const GameState&
     +status(): GameStatus
+    +promotionChoices(): vector<Piece>
     +addObserver(observer: GameObserver&): void
     -- para las fases --
-    +performMove(from: Position, to: Position): MoveResult
+    +performMove(from: Position, to: Position, promotion: const optional<PieceTypeId>&): MoveResult
     -- privados --
     -hasPieceOfSideToMove(from: Position): bool
+    -withPromotionChoice(move: const Move&, promotion: const optional<PieceTypeId>&): MoveResult
     -updatePhase(): void
     -notifyAfterMove(move: const Move&): void
     .. fase 7 ..
@@ -73,14 +75,14 @@ package "chess::application" {
   }
 
   interface GamePhase <<State>> {
-    +{abstract} tryMove(game: ChessGame&, from: Position, to: Position): MoveResult
+    +{abstract} tryMove(game: ChessGame&, from: Position, to: Position, promotion: const optional<PieceTypeId>&): MoveResult
     +~GamePhase()
   }
   class InProgressPhase {
-    +tryMove(game: ChessGame&, from: Position, to: Position): MoveResult
+    +tryMove(game: ChessGame&, from: Position, to: Position, promotion: const optional<PieceTypeId>&): MoveResult
   }
   class GameOverPhase {
-    +tryMove(game: ChessGame&, from: Position, to: Position): MoveResult
+    +tryMove(game: ChessGame&, from: Position, to: Position, promotion: const optional<PieceTypeId>&): MoveResult
   }
 
   class MoveCommand <<Command>> <<opcional>> {
@@ -105,7 +107,8 @@ package "chess::domain" {
     +legalMoves(state, from): vector<Move>
     +apply(state, move): GameState
     +status(state): GameStatus
-    +canPromoteTo(id): bool «fase 7»
+    +canPromoteTo(type): bool
+    +promotionChoices(color): vector<Piece>
   }
   class GameState <<Memento>>
   class Move
@@ -118,7 +121,9 @@ package "chess::adapters::console" {
     +ConsoleUI(game: GameService&, in: istream&, out: ostream&)
     +run(): void
     -execute(words: const vector<string>&): bool
-    -makeMove(fromText: const string&, toText: const string&): void
+    -makeMove(fromText: const string&, toText: const string&, promotionText: const string& = ""): void
+    -findPromotionChoice(text: const string&): optional<PieceTypeId>
+    -promotionChoicesText(): string
     -showMoves(squareText: const string&): void
     -showHelp(): void
     -reportError(result: const MoveResult&, fromText, toText): void

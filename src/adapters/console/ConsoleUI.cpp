@@ -55,13 +55,15 @@ bool ConsoleUI::execute(const std::vector<std::string>& words) {
         showMoves(words[1]);
     } else if (words.size() == 2) {
         makeMove(words[0], words[1]);
+    } else if (words.size() == 3) {
+        makeMove(words[0], words[1], words[2]);
     } else {
         out_ << "Comando desconocido. Escribí \"help\" para ver los comandos.\n";
     }
     return true;
 }
 
-void ConsoleUI::makeMove(const std::string& fromText, const std::string& toText) {
+void ConsoleUI::makeMove(const std::string& fromText, const std::string& toText, const std::string& promotionText) {
     const auto& dims = game_.state().board().dimensions();
     const std::optional<Position> from = AlgebraicNotation::parse(fromText, dims);
     const std::optional<Position> to = AlgebraicNotation::parse(toText, dims);
@@ -70,11 +72,45 @@ void ConsoleUI::makeMove(const std::string& fromText, const std::string& toText)
         return;
     }
 
+    std::optional<domain::PieceTypeId> promotion;
+    if (!promotionText.empty()) {
+        promotion = findPromotionChoice(promotionText);
+        if (!promotion) {
+            out_ << "No se puede promover a " << promotionText << ". Opciones: " << promotionChoicesText() << ".\n";
+            return;
+        }
+    }
+
     // Si la jugada es válida, el ConsoleRenderer ya dibujó el tablero (onMoveMade).
-    const ports::MoveResult result = game_.makeMove(*from, *to);
+    const ports::MoveResult result = game_.makeMove(*from, *to, promotion);
     if (!result.ok()) {
         reportError(result, fromText, toText);
     }
+}
+
+std::optional<domain::PieceTypeId> ConsoleUI::findPromotionChoice(const std::string& text) const {
+    // Sin switch sobre tipos de pieza: se busca entre las que ofrece el juego, así una pieza nueva
+    // promovible (el Arzobispo) se elige con su letra sin tocar la consola.
+    for (const domain::Piece& piece : game_.promotionChoices()) {
+        const bool sameSymbol =
+            text.size() == 1 && std::tolower(static_cast<unsigned char>(piece.symbol())) == text[0];
+        if (sameSymbol || piece.type().value() == text) {
+            return piece.type();
+        }
+    }
+    return std::nullopt;
+}
+
+std::string ConsoleUI::promotionChoicesText() const {
+    std::string result;
+    for (const domain::Piece& piece : game_.promotionChoices()) {
+        if (!result.empty()) {
+            result += ", ";
+        }
+        result += static_cast<char>(std::tolower(static_cast<unsigned char>(piece.symbol())));
+        result += " (" + piece.type().value() + ")";
+    }
+    return result;
 }
 
 void ConsoleUI::showMoves(const std::string& squareText) {
@@ -105,6 +141,7 @@ void ConsoleUI::showMoves(const std::string& squareText) {
 void ConsoleUI::showHelp() {
     out_ << "Comandos:\n"
          << "  e2 e4     mover la pieza de e2 a e4\n"
+         << "  e7 e8 q   mover y promover el peón (q, r, b, n o el nombre de la pieza)\n"
          << "  moves e2  ver a dónde puede ir la pieza de e2\n"
          << "  help      mostrar esta ayuda\n"
          << "  quit      salir\n";
@@ -125,6 +162,15 @@ void ConsoleUI::reportError(const ports::MoveResult& result, const std::string& 
             break;
         case MoveError::GameOver:
             out_ << "La partida terminó: ya no se puede mover.\n";
+            break;
+        case MoveError::PromotionRequired:
+            out_ << "Elegí a qué pieza promover, por ejemplo: " << fromText << ' ' << toText
+                 << " q. Opciones: " << promotionChoicesText() << ".\n";
+            break;
+        case MoveError::InvalidPromotion:
+            // La consola solo manda piezas de promotionChoices: si igual falla, la jugada no promueve.
+            out_ << "Esa jugada no es una promoción: escribila sin la pieza (" << fromText << ' ' << toText
+                 << ").\n";
             break;
     }
 }

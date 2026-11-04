@@ -162,10 +162,10 @@ Helpers sin estado: `Directions::orthogonals()`, `diagonals()`, `all()` y `knigh
 |---|---|
 | `MoveGenerator` | Recorre las reglas de la pieza y junta los movimientos **pseudo-legales**. |
 | `AttackDetector` | `isSquareAttacked(state, position, byColor)` y `isInCheck(state, color)` (busca la pieza `isRoyal`). |
-| `MoveApplier` | Aplica un `Move` a un `GameState` y devuelve el nuevo estado: mueve las piezas, resuelve la captura al paso, el enroque y la promoción, y actualiza derechos y turno. Es puro: no muta la entrada. |
+| `MoveApplier` | Aplica un `Move` a un `GameState` y devuelve el nuevo estado: mueve las piezas, resuelve la captura al paso, el enroque y la promoción (crea la pieza elegida con la `PieceFactory` que recibe por constructor), y actualiza `hasMoved` y el turno. Es puro: no muta la entrada. |
 | `LegalMoveFilter` | Descarta los movimientos pseudo-legales que dejan al propio rey en jaque (los aplica sobre una copia y consulta `AttackDetector`). |
 | `GameStatusEvaluator` | Calcula el estado de la partida para el bando que mueve con dos preguntas: ¿está en jaque? (`AttackDetector`) y ¿tiene alguna jugada legal? (`MoveGenerator` + `LegalMoveFilter`). En jaque y sin jugadas es `Checkmate`; sin jaque y sin jugadas, `Stalemate`. |
-| `RulesEngine` | Fachada del dominio: `legalMoves(state, from)`, `apply(state, move)`, `status(state)`. Crea y posee las clases anteriores; no se copia. `legalMoves` no mira el turno (lo valida la aplicación, D-14). En la fase 7 se construye con un `PieceRegistry&`, crea la `PieceFactory` para la promoción y suma `canPromoteTo(id)` (D-13). |
+| `RulesEngine` | Fachada del dominio: `legalMoves(state, from)`, `apply(state, move)`, `status(state)`. Crea y posee las clases anteriores; no se copia. `legalMoves` no mira el turno (lo valida la aplicación, D-14). Se construye con un `PieceRegistry&`, crea la `PieceFactory` para la promoción y responde `canPromoteTo(id)` y `promotionChoices(color)` (D-08, D-19). |
 
 Pipeline de validación de una jugada:
 ```
@@ -253,6 +253,7 @@ public:
     virtual std::vector<Move> legalMovesFrom(Position from) const = 0;
     virtual const GameState& state() const = 0;
     virtual GameStatus status() const = 0;
+    virtual std::vector<Piece> promotionChoices() const = 0;   // piezas a las que puede promover quien mueve
     virtual bool undo() = 0;
     virtual bool redo() = 0;
     virtual void addObserver(GameObserver&) = 0;
@@ -276,7 +277,8 @@ del bando que mueve: son las jugadas que `makeMove` aceptaría (la UI las usa pa
 
 `MoveResult` es un value object creado con `MoveResult::success(move)` o `MoveResult::failure(error)`
 (`ok()`, `error()`, `move()`), donde `MoveError` puede ser
-`NoPieceAtOrigin`, `NotYourTurn`, `IllegalMove`, `GameOver` (7.1) y, en la 7.2, `PromotionRequired`.
+`NoPieceAtOrigin`, `NotYourTurn`, `IllegalMove`, `GameOver` (7.1), `PromotionRequired` (la jugada promueve y
+no se eligió pieza) o `InvalidPromotion` (la pieza no es promovible, o se eligió una en una jugada que no promueve).
 
 **Manejo de errores:** en el flujo de juego **no se usan excepciones**. Una jugada inválida es un
 resultado esperado y se devuelve en `MoveResult`. Las excepciones quedan para errores de programación
@@ -285,8 +287,9 @@ resultado esperado y se devuelve en `MoveResult`. Las excepciones quedan para er
 ## 6. Adaptadores
 
 ### 6.1 Consola (`src/adapters/console`)
-- `ConsoleUI`: loop de lectura sobre streams inyectados. Comandos: `e2 e4`, `moves e2`, `help`, `quit`
-  (y en la fase 7: `e7 e8 q` para la promoción, `undo`, `redo`). Traduce cada `MoveError` a un mensaje.
+- `ConsoleUI`: loop de lectura sobre streams inyectados. Comandos: `e2 e4`, `e7 e8 q` (promoción: la
+  letra es el símbolo de una de `promotionChoices()`, o su id completo), `moves e2`, `help`, `quit`
+  (y en la 7.5: `undo`, `redo`). Traduce cada `MoveError` a un mensaje.
   No dibuja: el tablero lo dibuja el `ConsoleRenderer` cuando el juego le avisa.
 - `ConsoleRenderer`: implementa `GameObserver` y dibuja el tablero en ASCII.
 - `AlgebraicNotation`: convierte `"e2"` ↔ `Position`. Es una cuestión de presentación, por eso **no** está en el dominio.

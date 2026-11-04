@@ -132,3 +132,49 @@ TEST_F(PawnRuleTest, PawnOnTheLastRankHasNoMoves) {
     EXPECT_TRUE(movesOf(pawn, state, "e8").empty());
     EXPECT_TRUE(attacksOf(pawn, state, "e8").empty());
 }
+
+// --- Promoción: la regla la marca, no elige la pieza (D-08) ---
+
+TEST_F(PawnRuleTest, AdvancingToTheLastRankIsAPromotion) {
+    const PawnRule pawn;
+    const GameState state(builder().placeMoved("e7", kPiece, Color::White).build());
+
+    const auto moves = movesOf(pawn, state, "e7");
+    ASSERT_EQ(destinations(moves), squares({"e8"}));
+    EXPECT_EQ(moves[0].kind(), MoveKind::Promotion);
+    EXPECT_FALSE(moves[0].promotion().has_value());
+}
+
+TEST_F(PawnRuleTest, CapturingOntoTheLastRankIsAPromotion) {
+    const PawnRule pawn;
+    const GameState state(builder()
+                              .placeMoved("e7", kPiece, Color::White)
+                              .place("e8", kPiece, Color::Black)
+                              .place("d8", kPiece, Color::Black)
+                              .build());
+
+    const auto moves = movesOf(pawn, state, "e7");
+    ASSERT_EQ(destinations(moves), squares({"d8"}));
+    EXPECT_EQ(moves[0].kind(), MoveKind::Promotion);
+}
+
+TEST_F(PawnRuleTest, BlackPromotesOnRankOne) {
+    const PawnRule pawn;
+    const GameState state(builder().placeMoved("c2", kPiece, Color::Black).build(), Color::Black);
+
+    const auto moves = movesOf(pawn, state, "c2");
+    ASSERT_EQ(destinations(moves), squares({"c1"}));
+    EXPECT_EQ(moves[0].kind(), MoveKind::Promotion);
+}
+
+TEST_F(PawnRuleTest, PromotionHappensOnTheLastRankOfTheRealBoard) {
+    // En un 10×10 la fila 8 es una más; la promoción es en la 10 (D-09).
+    const PawnRule pawn;
+    const GameState state(builder(BoardDimensions(10, 10))
+                              .placeMoved("e7", kPiece, Color::White)
+                              .placeMoved("g9", kPiece, Color::White)
+                              .build());
+
+    EXPECT_EQ(movesOf(pawn, state, "e7")[0].kind(), MoveKind::Normal);
+    EXPECT_EQ(movesOf(pawn, state, "g9")[0].kind(), MoveKind::Promotion);
+}

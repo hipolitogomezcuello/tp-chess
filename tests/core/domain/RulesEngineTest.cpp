@@ -27,7 +27,7 @@ protected:
         return move ? engine_.apply(state, *move) : state;
     }
 
-    RulesEngine engine_;
+    RulesEngine engine_{registry_};
 };
 
 }  // namespace
@@ -90,4 +90,41 @@ TEST_F(RulesEngineTest, FoolsMateIsCheckmate) {
     state = play(state, "d8", "h4");
 
     EXPECT_EQ(engine_.status(state), GameStatus::Checkmate);
+}
+
+// --- Promoción (D-08): la decide el trait isPromotable del registro ---
+
+TEST_F(RulesEngineTest, CanPromoteOnlyToPromotablePieces) {
+    EXPECT_TRUE(engine_.canPromoteTo(kQueen));
+    EXPECT_TRUE(engine_.canPromoteTo(kRook));
+    EXPECT_TRUE(engine_.canPromoteTo(kBishop));
+    EXPECT_TRUE(engine_.canPromoteTo(kKnight));
+    EXPECT_FALSE(engine_.canPromoteTo(kKing));
+    EXPECT_FALSE(engine_.canPromoteTo(kPawn));
+    EXPECT_FALSE(engine_.canPromoteTo(chess::domain::PieceTypeId("unicorn")));
+}
+
+TEST_F(RulesEngineTest, PromotionChoicesArePiecesOfTheGivenColor) {
+    const auto choices = engine_.promotionChoices(Color::Black);
+
+    ASSERT_EQ(choices.size(), 4u);
+    for (const auto& piece : choices) {
+        EXPECT_EQ(piece.color(), Color::Black);
+        EXPECT_TRUE(piece.traits().isPromotable);
+    }
+}
+
+TEST_F(RulesEngineTest, ApplyingAPromotionCreatesTheChosenPiece) {
+    const GameState state(builder()
+                              .place("a1", kKing, Color::White)
+                              .place("h8", kKing, Color::Black)
+                              .placeMoved("c7", kPawn, Color::White)
+                              .build());
+    const auto moves = engine_.legalMoves(state, sq("c7"));
+    const Move* promotion = findMoveTo(moves, sq("c8"));
+    ASSERT_NE(promotion, nullptr);
+
+    const GameState next = engine_.apply(state, promotion->withPromotion(kRook));
+
+    EXPECT_EQ(next.board().pieceAt(sq("c8"))->type(), kRook);
 }

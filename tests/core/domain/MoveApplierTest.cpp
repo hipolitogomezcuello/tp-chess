@@ -13,7 +13,7 @@ using chess::testing::sq;
 using MoveApplierTest = chess::testing::StandardPiecesFixture;
 
 TEST_F(MoveApplierTest, MovesThePieceAndMarksItAsMoved) {
-    const MoveApplier applier;
+    const MoveApplier applier(factory_);
     const GameState state(builder().place("g1", kKnight, Color::White).build());
 
     const GameState next = applier.apply(state, Move(sq("g1"), sq("f3")));
@@ -25,7 +25,7 @@ TEST_F(MoveApplierTest, MovesThePieceAndMarksItAsMoved) {
 }
 
 TEST_F(MoveApplierTest, PassesTheTurnToTheOtherSide) {
-    const MoveApplier applier;
+    const MoveApplier applier(factory_);
     const GameState white(builder().place("e2", kPawn, Color::White).build(), Color::White);
     const GameState black = applier.apply(white, Move(sq("e2"), sq("e4"), MoveKind::DoublePawnPush));
 
@@ -33,7 +33,7 @@ TEST_F(MoveApplierTest, PassesTheTurnToTheOtherSide) {
 }
 
 TEST_F(MoveApplierTest, CaptureRemovesTheVictim) {
-    const MoveApplier applier;
+    const MoveApplier applier(factory_);
     const GameState state(builder()
                               .place("a1", kRook, Color::White)
                               .place("a8", kRook, Color::Black)
@@ -46,7 +46,7 @@ TEST_F(MoveApplierTest, CaptureRemovesTheVictim) {
 }
 
 TEST_F(MoveApplierTest, DoesNotModifyTheOriginalState) {
-    const MoveApplier applier;
+    const MoveApplier applier(factory_);
     const GameState state(builder().place("g1", kKnight, Color::White).build());
 
     (void)applier.apply(state, Move(sq("g1"), sq("f3")));
@@ -54,4 +54,42 @@ TEST_F(MoveApplierTest, DoesNotModifyTheOriginalState) {
     EXPECT_FALSE(state.board().isEmpty(sq("g1")));
     EXPECT_TRUE(state.board().isEmpty(sq("f3")));
     EXPECT_EQ(state.sideToMove(), Color::White);
+}
+
+TEST_F(MoveApplierTest, PromotionReplacesThePawnWithTheChosenPiece) {
+    const MoveApplier applier(factory_);
+    const GameState state(builder().placeMoved("e7", kPawn, Color::White).build());
+
+    const GameState next = applier.apply(state, Move(sq("e7"), sq("e8"), MoveKind::Promotion).withPromotion(kQueen));
+
+    ASSERT_TRUE(next.board().pieceAt(sq("e8")).has_value());
+    EXPECT_EQ(next.board().pieceAt(sq("e8"))->type(), kQueen);
+    EXPECT_EQ(next.board().pieceAt(sq("e8"))->color(), Color::White);
+    EXPECT_TRUE(next.board().pieceAt(sq("e8"))->hasMoved());
+    EXPECT_TRUE(next.board().isEmpty(sq("e7")));
+}
+
+TEST_F(MoveApplierTest, PromotionCanAlsoCapture) {
+    const MoveApplier applier(factory_);
+    const GameState state(builder()
+                              .placeMoved("b2", kPawn, Color::Black)
+                              .place("a1", kRook, Color::White)
+                              .build(),
+                          Color::Black);
+
+    const GameState next = applier.apply(state, Move(sq("b2"), sq("a1"), MoveKind::Promotion).withPromotion(kKnight));
+
+    EXPECT_EQ(next.board().pieceAt(sq("a1"))->type(), kKnight);
+    EXPECT_EQ(next.board().pieceAt(sq("a1"))->color(), Color::Black);
+    EXPECT_TRUE(next.board().positionsOf(Color::White).empty());
+}
+
+TEST_F(MoveApplierTest, PromotionWithoutAChosenPieceLeavesThePawn) {
+    // LegalMoveFilter prueba la jugada antes de que el jugador elija: el peón llega igual a la casilla.
+    const MoveApplier applier(factory_);
+    const GameState state(builder().placeMoved("e7", kPawn, Color::White).build());
+
+    const GameState next = applier.apply(state, Move(sq("e7"), sq("e8"), MoveKind::Promotion));
+
+    EXPECT_EQ(next.board().pieceAt(sq("e8"))->type(), kPawn);
 }

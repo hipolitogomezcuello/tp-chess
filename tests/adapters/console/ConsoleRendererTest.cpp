@@ -103,3 +103,11 @@ TEST_F(ConsoleRendererTest, OnGameOverAnnouncesAStalemateAsADraw) {
 
     EXPECT_TRUE(printed("Ahogado: la partida termina en tablas."));
 }
+
+TEST_F(ConsoleRendererTest, PromotionsShowTheNewPiece) {
+    const GameState after(builder().placeMoved("e8", kQueen, Color::White).build(), Color::Black);
+
+    renderer_.onMoveMade(Move(sq("e7"), sq("e8"), MoveKind::Promotion).withPromotion(kQueen), after);
+
+    EXPECT_TRUE(printed("e7-e8=Q"));
+}

@@ -28,11 +28,11 @@ ChessGame::ChessGame(const domain::RulesEngine& rules, domain::GameState initial
     updatePhase();
 }
 
-MoveResult ChessGame::makeMove(Position from, Position to) {
-    return phase_->tryMove(*this, from, to);
+MoveResult ChessGame::makeMove(Position from, Position to, std::optional<domain::PieceTypeId> promotion) {
+    return phase_->tryMove(*this, from, to, promotion);
 }
 
-MoveResult ChessGame::performMove(Position from, Position to) {
+MoveResult ChessGame::performMove(Position from, Position to, const std::optional<domain::PieceTypeId>& promotion) {
     const domain::Board& board = state_.board();
     if (!board.dimensions().contains(from) || board.isEmpty(from)) {
         return MoveResult::failure(MoveError::NoPieceAtOrigin);
@@ -48,7 +48,12 @@ MoveResult ChessGame::performMove(Position from, Position to) {
         return MoveResult::failure(MoveError::IllegalMove);
     }
 
-    const Move move = *chosen;
+    const MoveResult completed = withPromotionChoice(*chosen, promotion);
+    if (!completed.ok()) {
+        return completed;
+    }
+
+    const Move move = *completed.move();
     state_ = rules_.apply(state_, move);
     updatePhase();
     notifyAfterMove(move);
@@ -66,6 +71,10 @@ GameStatus ChessGame::status() const {
     return rules_.status(state_);
 }
 
+std::vector<domain::Piece> ChessGame::promotionChoices() const {
+    return rules_.promotionChoices(state_.sideToMove());
+}
+
 void ChessGame::addObserver(ports::GameObserver& observer) {
     observers_.emplace_back(observer);
 }
@@ -77,6 +86,20 @@ bool ChessGame::hasPieceOfSideToMove(Position from) const {
     }
     const auto piece = board.pieceAt(from);
     return piece && piece->color() == state_.sideToMove();
+}
+
+MoveResult ChessGame::withPromotionChoice(const Move& move,
+                                          const std::optional<domain::PieceTypeId>& promotion) const {
+    if (move.kind() != domain::MoveKind::Promotion) {
+        return promotion ? MoveResult::failure(MoveError::InvalidPromotion) : MoveResult::success(move);
+    }
+    if (!promotion) {
+        return MoveResult::failure(MoveError::PromotionRequired);
+    }
+    if (!rules_.canPromoteTo(*promotion)) {
+        return MoveResult::failure(MoveError::InvalidPromotion);
+    }
+    return MoveResult::success(move.withPromotion(*promotion));
 }
 
 void ChessGame::updatePhase() {

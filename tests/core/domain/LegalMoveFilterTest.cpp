@@ -28,7 +28,7 @@ protected:
     }
 
     MoveGenerator generator_;
-    MoveApplier applier_;
+    MoveApplier applier_{factory_};
     AttackDetector detector_;
     LegalMoveFilter filter_;
 };

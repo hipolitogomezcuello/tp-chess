@@ -2,12 +2,15 @@
 
 #include <functional>
 #include <memory>
+#include <optional>
 #include <vector>
 
 #include "application/GamePhase.hpp"
 #include "domain/GameState.hpp"
 #include "domain/GameStatus.hpp"
 #include "domain/Move.hpp"
+#include "domain/Piece.hpp"
+#include "domain/PieceTypeId.hpp"
 #include "domain/Position.hpp"
 #include "domain/RulesEngine.hpp"
 #include "ports/GameObserver.hpp"
@@ -26,19 +29,25 @@ public:
     // Guarda una referencia al motor: debe vivir más que el juego.
     ChessGame(const domain::RulesEngine& rules, domain::GameState initialState);
 
-    ports::MoveResult makeMove(domain::Position from, domain::Position to) override;
+    ports::MoveResult makeMove(domain::Position from, domain::Position to,
+                               std::optional<domain::PieceTypeId> promotion = std::nullopt) override;
     std::vector<domain::Move> legalMovesFrom(domain::Position from) const override;
     const domain::GameState& state() const override { return state_; }
     domain::GameStatus status() const override;
+    std::vector<domain::Piece> promotionChoices() const override;
     void addObserver(ports::GameObserver& observer) override;
 
     // Valida y hace la jugada sin mirar la fase. La llama InProgressPhase; los adaptadores no la
     // ven porque solo conocen el puerto GameService.
-    ports::MoveResult performMove(domain::Position from, domain::Position to);
+    ports::MoveResult performMove(domain::Position from, domain::Position to,
+                                  const std::optional<domain::PieceTypeId>& promotion);
 
 private:
     // ¿Hay en `from` una pieza del bando que mueve? (fuera del tablero cuenta como vacía)
     bool hasPieceOfSideToMove(domain::Position from) const;
+    // Completa la jugada elegida con la pieza de la promoción, o devuelve por qué no se puede.
+    ports::MoveResult withPromotionChoice(const domain::Move& move,
+                                          const std::optional<domain::PieceTypeId>& promotion) const;
     // Elige la fase según el GameStatus del estado actual (D-10).
     void updatePhase();
     void notifyAfterMove(const domain::Move& move);

@@ -10,6 +10,7 @@
 using chess::adapters::console::ConsoleUI;
 using chess::application::ChessGame;
 using chess::domain::Color;
+using chess::domain::GameState;
 using chess::domain::RulesEngine;
 using chess::testing::sq;
 
@@ -18,14 +19,25 @@ namespace {
 // La UI solo conoce el puerto GameService; acá se le da el ChessGame real para probar de punta a punta.
 class ConsoleUITest : public chess::testing::StandardPiecesFixture {
 protected:
-    void run(const std::string& input) {
+    void run(const std::string& input) { run(game_, input); }
+
+    void run(chess::ports::GameService& game, const std::string& input) {
         std::istringstream in(input);
-        ConsoleUI(game_, in, out_).run();
+        ConsoleUI(game, in, out_).run();
+    }
+
+    // Peón blanco listo para promover en c8.
+    GameState aboutToPromote() const {
+        return GameState(builder()
+                             .place("a1", kKing, Color::White)
+                             .place("h8", kKing, Color::Black)
+                             .placeMoved("c7", kPawn, Color::White)
+                             .build());
     }
 
     bool printed(const std::string& text) const { return out_.str().find(text) != std::string::npos; }
 
-    RulesEngine rules_;
+    RulesEngine rules_{registry_};
     ChessGame game_{rules_, initialState()};
     std::ostringstream out_;
 };
@@ -127,4 +139,56 @@ TEST_F(ConsoleUITest, ExplainsThatTheGameIsOver) {
 
     EXPECT_TRUE(printed("La partida terminó"));
     EXPECT_TRUE(game_.state().board().isEmpty(sq("a3")));
+}
+
+// --- Promoción: "c7 c8 q" (la letra es el símbolo de la pieza, o su id completo) ---
+
+TEST_F(ConsoleUITest, AThirdWordChoosesThePromotionPiece) {
+    ChessGame game(rules_, aboutToPromote());
+
+    run(game, "c7 c8 q\n");
+
+    EXPECT_EQ(game.state().board().pieceAt(sq("c8"))->type(), kQueen);
+}
+
+TEST_F(ConsoleUITest, ThePromotionPieceCanBeWrittenWithItsFullId) {
+    ChessGame game(rules_, aboutToPromote());
+
+    run(game, "c7 c8 knight\n");
+
+    EXPECT_EQ(game.state().board().pieceAt(sq("c8"))->type(), kKnight);
+}
+
+TEST_F(ConsoleUITest, AsksForThePieceWhenAPromotionHasNone) {
+    ChessGame game(rules_, aboutToPromote());
+
+    run(game, "c7 c8\n");
+
+    EXPECT_TRUE(printed("Elegí a qué pieza promover"));
+    EXPECT_TRUE(printed("c7 c8 q"));
+    EXPECT_EQ(game.state().board().pieceAt(sq("c7"))->type(), kPawn);
+}
+
+TEST_F(ConsoleUITest, RejectsAnUnknownPromotionPiece) {
+    ChessGame game(rules_, aboutToPromote());
+
+    run(game, "c7 c8 x\n");
+
+    EXPECT_TRUE(printed("No se puede promover a x"));
+    EXPECT_EQ(game.state().board().pieceAt(sq("c7"))->type(), kPawn);
+}
+
+TEST_F(ConsoleUITest, RejectsANonPromotablePiece) {
+    ChessGame game(rules_, aboutToPromote());
+
+    run(game, "c7 c8 k\n");
+
+    EXPECT_TRUE(printed("No se puede promover a k"));
+}
+
+TEST_F(ConsoleUITest, RejectsAPromotionPieceOnANormalMove) {
+    run("e2 e4 q\n");
+
+    EXPECT_TRUE(printed("Esa jugada no es una promoción"));
+    EXPECT_TRUE(game_.state().board().isEmpty(sq("e4")));
 }

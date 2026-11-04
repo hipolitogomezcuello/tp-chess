@@ -23,7 +23,7 @@ protected:
     GameStatusEvaluatorTest() : filter_(applier_, detector_), evaluator_(detector_, generator_, filter_) {}
 
     MoveGenerator generator_;
-    MoveApplier applier_;
+    MoveApplier applier_{factory_};
     AttackDetector detector_;
     LegalMoveFilter filter_;
     GameStatusEvaluator evaluator_;

@@ -31,7 +31,7 @@ protected:
         return game.makeMove(sq(from), sq(to));
     }
 
-    RulesEngine rules_;
+    RulesEngine rules_{registry_};
     FakeObserver observer_;
 };
 
@@ -188,6 +188,83 @@ TEST_F(ChessGameTest, InCheckOnlyMovesThatResolveItAreAccepted) {
     EXPECT_EQ(move(game, "a7", "a6").error(), MoveError::IllegalMove);
     EXPECT_TRUE(move(game, "g7", "g6").ok());
     EXPECT_EQ(game.status(), GameStatus::InProgress);
+}
+
+// --- Promoción (D-08) ---
+
+namespace {
+
+class ChessGamePromotionTest : public ChessGameTest {
+protected:
+    // Peón blanco listo para promover en c8.
+    GameState aboutToPromote() const {
+        return GameState(builder()
+                             .place("a1", kKing, Color::White)
+                             .place("h8", kKing, Color::Black)
+                             .placeMoved("c7", kPawn, Color::White)
+                             .build());
+    }
+};
+
+}  // namespace
+
+TEST_F(ChessGamePromotionTest, PromotesToTheChosenPiece) {
+    ChessGame game(rules_, aboutToPromote());
+    game.addObserver(observer_);
+
+    const MoveResult result = game.makeMove(sq("c7"), sq("c8"), kQueen);
+
+    ASSERT_TRUE(result.ok());
+    EXPECT_EQ(result.move()->kind(), MoveKind::Promotion);
+    EXPECT_EQ(result.move()->promotion(), kQueen);
+    EXPECT_EQ(game.state().board().pieceAt(sq("c8"))->type(), kQueen);
+    ASSERT_EQ(observer_.movesMade.size(), 1u);
+    EXPECT_EQ(observer_.movesMade[0].promotion(), kQueen);
+}
+
+TEST_F(ChessGamePromotionTest, PromotionWithoutChoosingAPieceFailsWithPromotionRequired) {
+    ChessGame game(rules_, aboutToPromote());
+    game.addObserver(observer_);
+
+    EXPECT_EQ(move(game, "c7", "c8").error(), MoveError::PromotionRequired);
+    EXPECT_EQ(game.state().board().pieceAt(sq("c7"))->type(), kPawn);
+    EXPECT_TRUE(observer_.movesMade.empty());
+}
+
+TEST_F(ChessGamePromotionTest, PromotingToANonPromotablePieceFailsWithInvalidPromotion) {
+    ChessGame game(rules_, aboutToPromote());
+
+    EXPECT_EQ(game.makeMove(sq("c7"), sq("c8"), kKing).error(), MoveError::InvalidPromotion);
+    EXPECT_EQ(game.makeMove(sq("c7"), sq("c8"), kPawn).error(), MoveError::InvalidPromotion);
+    EXPECT_TRUE(game.state().board().isEmpty(sq("c8")));
+}
+
+TEST_F(ChessGamePromotionTest, ChoosingAPieceForANormalMoveFailsWithInvalidPromotion) {
+    ChessGame game(rules_, initialState());
+
+    EXPECT_EQ(game.makeMove(sq("e2"), sq("e4"), kQueen).error(), MoveError::InvalidPromotion);
+    EXPECT_EQ(game.state().sideToMove(), Color::White);
+}
+
+TEST_F(ChessGamePromotionTest, PromotionChoicesAreForTheSideToMove) {
+    ChessGame game(rules_, aboutToPromote());
+
+    const auto choices = game.promotionChoices();
+
+    EXPECT_EQ(choices.size(), 4u);
+    for (const auto& piece : choices) {
+        EXPECT_EQ(piece.color(), Color::White);
+    }
+}
+
+TEST_F(ChessGamePromotionTest, APromotionCanGiveCheck) {
+    ChessGame game(rules_, aboutToPromote());
+    game.addObserver(observer_);
+
+    // La torre en c8 ataca toda la fila 8: jaque al rey de h8.
+    ASSERT_TRUE(game.makeMove(sq("c7"), sq("c8"), kRook).ok());
+
+    EXPECT_EQ(observer_.checks.size(), 1u);
 }
 
 // --- Fin de la partida (State: GameOverPhase) ---
