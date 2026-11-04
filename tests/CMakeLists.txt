@@ -1,0 +1,23 @@
+# chess_tests — tests unitarios del núcleo. Solo enlaza chess_core y GoogleTest:
+# no hay ninguna infraestructura (ni UI, ni archivos, ni red).
+
+include(FetchContent)
+FetchContent_Declare(
+    googletest
+    URL https://github.com/google/googletest/releases/download/v1.15.2/googletest-1.15.2.tar.gz
+    DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+)
+# MSVC: usar el mismo runtime (/MD) que el resto del proyecto.
+set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+# No instalar GoogleTest junto con el proyecto.
+set(INSTALL_GTEST OFF CACHE BOOL "" FORCE)
+FetchContent_MakeAvailable(googletest)
+
+# Un archivo de test por clase, espejando src/core (tests/core/domain/SlidingRuleTest.cpp).
+add_executable(chess_tests
+    core/SmokeTest.cpp
+)
+target_link_libraries(chess_tests PRIVATE chess_core chess_warnings GTest::gtest_main)
+
+include(GoogleTest)
+gtest_discover_tests(chess_tests)

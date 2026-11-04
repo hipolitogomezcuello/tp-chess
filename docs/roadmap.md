@@ -38,9 +38,9 @@ Leyenda: `[ ]` pendiente · `[~]` en curso · `[x]` hecha
   - Recorrer los diagramas preguntando: ¿se puede agregar una pieza nueva sin modificar ninguna clase?
     ¿Y un tablero de 10×10? Si no, corregir el diseño. Registrar las decisiones en `docs/decisiones.md`.
 
-## Fase 2 — Esqueleto de build
+## Fase 2 — Esqueleto de build ✅
 
-- [ ] **2.1** `CMakeLists.txt` raíz más los de los subdirectorios: targets `chess_core`, `chess_console` y `chess_tests` (raylib en la fase 8).
+- [x] **2.1** `CMakeLists.txt` raíz más los de los subdirectorios: targets `chess_core`, `chess_console` y `chess_tests` (raylib en la fase 8).
   - GoogleTest vía `FetchContent`, `enable_testing()`, warnings altos (`/W4` o `-Wall -Wextra -Wpedantic`).
   - `.gitignore` con `build/`.
   - Terminado si: `cmake -S . -B build && cmake --build build && ctest --test-dir build` pasa con un test trivial.
@@ -48,6 +48,7 @@ Leyenda: `[ ]` pendiente · `[~]` en curso · `[x]` hecha
 ## Fase 3 — Dominio base (TDD)
 
 - [ ] **3.1** `Color`, `Position`, `Offset`, `BoardDimensions`, más sus tests.
+  - Al agregar el primer `.cpp`, pasar `chess_core` de `INTERFACE` a `STATIC` (ver comentario en `src/core/CMakeLists.txt`) y borrar `tests/core/SmokeTest.cpp`.
 - [ ] **3.2** `PieceTypeId`, `PieceTraits`, `PieceDefinition`, `Piece`, `PieceRegistry`, `PieceFactory`.
 - [ ] **3.3** `Board` y el helper de tests `BoardBuilder`.
 - [ ] **3.4** `MovementRule`, `MoveContext`, `Move`, más `SlidingRule` y `LeaperRule` con tests (vacío, bloqueo, captura, borde).

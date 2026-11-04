@@ -87,14 +87,18 @@ docs/                    Documentación y diagramas.
 - Interfaces = clases abstractas puras con destructor virtual.
 - Preferir value objects inmutables (`Position`, `Move`).
 
-## Comandos (una vez que exista el esqueleto, fase 2)
+## Comandos
 
 ```bash
-cmake -S . -B build                 # configurar
+cmake -S . -B build                 # configurar (la primera vez descarga GoogleTest)
 cmake --build build                 # compilar todo
 ctest --test-dir build --output-on-failure   # correr tests
 ./build/app/chess_console           # jugar por consola (en Windows: build\app\Debug\chess_console.exe con MSVC)
 ```
+
+Con el generador de Visual Studio (multi-config), `ctest` necesita la configuración:
+`ctest --test-dir build -C Debug --output-on-failure`. Si `cmake` no está en el PATH, Visual Studio
+trae uno en `Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin/`.
 
 Renderizar diagramas: `plantuml docs/diagramas/*.puml` (o la extensión PlantUML de VS Code).
 
