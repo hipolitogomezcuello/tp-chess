@@ -72,18 +72,19 @@ package "chess::domain" {
 
     class Move <<ValueObject>> {
       +Move(from: Position, to: Position, kind: MoveKind = Normal)
-      +{static} castling(from, to, rookFrom, rookTo): Move
-      +{static} enPassant(from, to, capturedSquare): Move
       +from(): Position
       +to(): Position
       +kind(): MoveKind
       +promotion(): optional<PieceTypeId>
       +withPromotion(PieceTypeId): Move
-      +rookFrom(): optional<Position>
-      +rookTo(): optional<Position>
-      +capturedSquare(): optional<Position>
       +operator==(Move): bool
     }
+    note bottom of Move
+      Fase 7 (opcional) agrega:
+      castling(from, to, rookFrom, rookTo),
+      enPassant(from, to, capturedSquare),
+      rookFrom(), rookTo(), capturedSquare().
+    end note
 
     enum GameStatus {
       InProgress
@@ -243,7 +244,7 @@ package "chess::domain" {
 Position ..> Offset : se suma a
 Directions ..> Offset : crea
 BoardDimensions ..> Position : contains
-Move "1" *-- "2..4" Position
+Move "1" *-- "2" Position
 Move "1" *-- "1" MoveKind
 Move "1" o-- "0..1" PieceTypeId : promotion
 

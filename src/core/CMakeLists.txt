@@ -11,6 +11,12 @@ target_sources(chess_core PRIVATE
     domain/PieceRegistry.cpp
     domain/PieceFactory.cpp
     domain/Board.cpp
+    domain/Move.cpp
+    domain/MoveContext.cpp
+    domain/Directions.cpp
+    domain/SlidingRule.cpp
+    domain/LeaperRule.cpp
+    domain/RuleHelpers.cpp
 )
 
 # Los includes se escriben desde src/core: #include "domain/Position.hpp"
