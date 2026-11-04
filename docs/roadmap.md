@@ -73,7 +73,7 @@ Leyenda: `[ ]` pendiente · `[~]` en curso · `[x]` hecha
 ## Fase 6 — Adaptador de consola → 🎯 MVP OBLIGATORIO
 
 - [x] **6.1** `AlgebraicNotation`, `ConsoleRenderer` (observer) y `ConsoleUI`.
-- [ ] **6.2** `app/main_console.cpp` (composition root).
+- [x] **6.2** `app/main_console.cpp` (composition root).
 - [ ] **6.3** Verificación manual: jugar una partida corta, intentar jugadas ilegales y provocar un jaque.
   - Al completar esta fase **se cumple todo el alcance obligatorio** de la consigna.
 

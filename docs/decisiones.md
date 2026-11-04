@@ -205,8 +205,24 @@ observer se destruyera antes que el juego: hoy la regla es que el composition ro
 destruye después.
 **Dónde en el código:** `ports/GameObserver.hpp`, `ChessGame::addObserver`, `ConsoleRenderer`.
 
+## D-17 — Inyección de dependencias manual y composition root
+**Estado:** vigente
+**Qué:** cada clase recibe sus dependencias por constructor (`ChessGame(rules, initialState)`,
+`ConsoleUI(game, in, out)`, `ConsoleRenderer(out)`). El grafo completo se arma a mano en
+`app/main_console.cpp`, que es el único archivo que conoce dominio, aplicación y adaptador.
+**Por qué:** las dependencias quedan a la vista en las firmas y en los tests se reemplazan sin trucos
+(`FakeObserver`, streams en memoria en lugar de `std::cin`/`std::cout`). Las extensiones de la defensa
+(pieza nueva, otro tablero) se enchufan en un solo lugar. Se descartaron los singletons y el estado
+global porque esconden dependencias y acoplan los tests entre sí, y un contenedor de DI porque para
+media docena de objetos es más ceremonia que ayuda.
+**Cuándo se rompería:** con decenas de servicios y varias configuraciones (por ejemplo, según un archivo
+de configuración), escribir el armado a mano se vuelve repetitivo y propenso a errores; ahí conviene una
+fábrica por configuración o un contenedor. También exige cuidar los tiempos de vida a mano: quien
+recibe una referencia (`ChessGame` → `RulesEngine`, observers) asume que el composition root la creó
+antes y la destruye después.
+**Dónde en el código:** `app/main_console.cpp`, constructores de `ChessGame`, `ConsoleUI`, `ConsoleRenderer`.
+
 <!-- Próximas decisiones (las completan los agentes cuando las implementen):
      Command + Memento para deshacer/rehacer (snapshot completo vs. delta)
      State para las fases de la partida (complementa D-10)
-     Inyección de dependencias manual y composition root (sin contenedor de DI)
      raylib como UI gráfica (frente a SFML o Qt) -->
