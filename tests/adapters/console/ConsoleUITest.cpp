@@ -141,6 +141,29 @@ TEST_F(ConsoleUITest, ExplainsThatTheGameIsOver) {
     EXPECT_TRUE(game_.state().board().isEmpty(sq("a3")));
 }
 
+// --- Deshacer y rehacer ---
+
+TEST_F(ConsoleUITest, UndoTakesBackTheLastMove) {
+    run("e2 e4\nundo\n");
+
+    EXPECT_TRUE(game_.state().board().isEmpty(sq("e4")));
+    EXPECT_TRUE(printed("Se deshizo la última jugada"));
+}
+
+TEST_F(ConsoleUITest, RedoReplaysTheUndoneMove) {
+    run("e2 e4\nundo\nredo\n");
+
+    EXPECT_FALSE(game_.state().board().isEmpty(sq("e4")));
+    EXPECT_TRUE(printed("Se rehízo la jugada"));
+}
+
+TEST_F(ConsoleUITest, UndoAndRedoWithNothingToDoSaySo) {
+    run("undo\nredo\n");
+
+    EXPECT_TRUE(printed("No hay jugadas para deshacer"));
+    EXPECT_TRUE(printed("No hay jugadas para rehacer"));
+}
+
 // --- Promoción: "c7 c8 q" (la letra es el símbolo de la pieza, o su id completo) ---
 
 TEST_F(ConsoleUITest, AThirdWordChoosesThePromotionPiece) {

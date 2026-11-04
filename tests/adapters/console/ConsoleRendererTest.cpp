@@ -131,3 +131,10 @@ TEST_F(ConsoleRendererTest, EnPassantIsPrintedAsACapture) {
 
     EXPECT_TRUE(printed("e5xd6 (al paso)"));
 }
+
+TEST_F(ConsoleRendererTest, OnUndoRedoDrawsTheRestoredBoard) {
+    renderer_.onUndoRedo(initialState());
+
+    EXPECT_TRUE(printed("1 R N B Q K B N R"));
+    EXPECT_TRUE(printed("Juegan las blancas"));
+}

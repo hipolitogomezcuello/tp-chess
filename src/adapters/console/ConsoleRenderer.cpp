@@ -82,4 +82,8 @@ void ConsoleRenderer::onGameOver(domain::GameStatus result, Color sideToMove) {
     }
 }
 
+void ConsoleRenderer::onUndoRedo(const domain::GameState& state) {
+    render(state);
+}
+
 }  // namespace chess::adapters::console

@@ -23,6 +23,7 @@ public:
     void onMoveMade(const domain::Move& move, const domain::GameState& state) override;
     void onCheck(domain::Color colorInCheck) override;
     void onGameOver(domain::GameStatus result, domain::Color sideToMove) override;
+    void onUndoRedo(const domain::GameState& state) override;
 
 private:
     std::ostream& out_;

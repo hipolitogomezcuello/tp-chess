@@ -216,7 +216,7 @@ candidatos (MovementRules) → pseudo-legales (MoveGenerator) → legales (Legal
 
 ### 3.8 Command + Memento — deshacer/rehacer
 - **Dónde:** `MoveCommand` (`execute`/`undo`) y `MoveHistory` (pilas undo/redo) en `application/`.
-  El comando guarda el `GameState` previo como Memento.
+  El comando guarda el `GameState` previo como Memento; rehacer es volver a ejecutarlo (D-20).
 - **Por qué:** cada jugada es un objeto reversible. Guardar el snapshot completo es simple y correcto,
   a costa de memoria, que acá es despreciable.
 
@@ -289,9 +289,10 @@ resultado esperado y se devuelve en `MoveResult`. Las excepciones quedan para er
 ### 6.1 Consola (`src/adapters/console`)
 - `ConsoleUI`: loop de lectura sobre streams inyectados. Comandos: `e2 e4`, `e7 e8 q` (promoción: la
   letra es el símbolo de una de `promotionChoices()`, o su id completo), `moves e2`, `help`, `quit`
-  (y en la 7.5: `undo`, `redo`). Traduce cada `MoveError` a un mensaje.
+  `undo` y `redo`. Traduce cada `MoveError` a un mensaje.
   No dibuja: el tablero lo dibuja el `ConsoleRenderer` cuando el juego le avisa.
-- `ConsoleRenderer`: implementa `GameObserver` y dibuja el tablero en ASCII.
+- `ConsoleRenderer`: implementa `GameObserver` y dibuja el tablero en ASCII (después de cada jugada y
+  de cada deshacer/rehacer), y anuncia el jaque, el mate y el ahogado.
 - `AlgebraicNotation`: convierte `"e2"` ↔ `Position`. Es una cuestión de presentación, por eso **no** está en el dominio.
 
 ### 6.2 raylib (`src/adapters/raylib`)

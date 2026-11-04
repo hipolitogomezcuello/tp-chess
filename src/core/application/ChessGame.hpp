@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "application/GamePhase.hpp"
+#include "application/MoveHistory.hpp"
 #include "domain/GameState.hpp"
 #include "domain/GameStatus.hpp"
 #include "domain/Move.hpp"
@@ -23,6 +24,7 @@ namespace chess::application {
 // Guarda el GameState actual, valida el turno, le pide al RulesEngine (Facade) las jugadas legales
 // y avisa a los observers (Observer, §3.9). Las reglas de ajedrez no viven acá: viven en el dominio.
 // makeMove delega en la fase actual (State, §3.7), que se deriva del GameStatus (D-10).
+// Cada jugada se ejecuta como un MoveCommand y se anota en el MoveHistory (Command + Memento, §3.8).
 // Dependencias por constructor (§3.10): el RulesEngine lo crea y posee el composition root.
 class ChessGame : public ports::GameService {
 public:
@@ -35,6 +37,8 @@ public:
     const domain::GameState& state() const override { return state_; }
     domain::GameStatus status() const override;
     std::vector<domain::Piece> promotionChoices() const override;
+    bool undo() override;
+    bool redo() override;
     void addObserver(ports::GameObserver& observer) override;
 
     // Valida y hace la jugada sin mirar la fase. La llama InProgressPhase; los adaptadores no la
@@ -51,9 +55,11 @@ private:
     // Elige la fase según el GameStatus del estado actual (D-10).
     void updatePhase();
     void notifyAfterMove(const domain::Move& move);
+    void notifyUndoRedo();
 
     const domain::RulesEngine& rules_;
     domain::GameState state_;
+    MoveHistory history_;
     std::unique_ptr<const GamePhase> phase_;
     std::vector<std::reference_wrapper<ports::GameObserver>> observers_;
 };

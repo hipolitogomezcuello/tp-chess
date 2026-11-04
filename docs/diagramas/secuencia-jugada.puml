@@ -1,7 +1,6 @@
 @startuml secuencia-jugada
-' Diagrama de secuencia: hacer una jugada (misión 1.4, actualizado en la 5.3).
-' Refleja lo implementado. Los bloques "fase 7" (GamePhase, MoveHistory, promoción, fin de
-' partida) son el diseño de los opcionales y todavía no existen en el código.
+' Diagrama de secuencia: hacer una jugada (misión 1.4, actualizado en la 5.3 y en la fase 7).
+' Refleja lo implementado: State (GamePhase), promoción, Command + Memento y fin de partida.
 title Hacer una jugada — desde ConsoleUI hasta los observers
 
 skinparam shadowing false
@@ -11,57 +10,64 @@ actor Jugador
 participant "ConsoleUI\n<<Adapter>>" as UI
 participant "AlgebraicNotation" as AN
 participant "GameService\n(ChessGame)" as Game
-participant "GamePhase\n<<State>>\n«fase 7»" as Phase #F5F5F5
+participant "GamePhase\n<<State>>" as Phase
 participant "RulesEngine\n<<Facade>>" as Rules
-participant "MoveHistory\n«fase 7»" as History #F5F5F5
+participant "MoveCommand\n<<Command>>" as Cmd
+participant "MoveHistory" as History
 participant "GameObserver\n(ConsoleRenderer)" as Obs
 
-Jugador -> UI : escribe "e2 e4"
+Jugador -> UI : escribe "e2 e4" (o "e7 e8 q")
 UI -> AN : parse("e2", dims), parse("e4", dims)
 AN --> UI : optional<Position> from, to
 alt alguna casilla no se entiende
   UI -> Jugador : "casilla inválida"
 else casillas válidas
-  UI -> Game : makeMove(from, to)
-
-  group fase 7 (State)
-    Game -> Phase : tryMove(game, from, to, promotion)
-    note right of Phase : GameOverPhase → failure(GameOver)\nInProgressPhase → game.performMove(...)
+  opt hay tercera palabra
+    UI -> Game : promotionChoices()
+    Game --> UI : vector<Piece>
+    note right of UI : busca la de símbolo "q" o id "queen" (D-19)
   end
+  UI -> Game : makeMove(from, to, promotion)
+  Game -> Phase : tryMove(game, from, to, promotion)
 
-  Game -> Game : ¿hay pieza en from?\n¿es del color que mueve?
-  alt no hay pieza (o from fuera del tablero)
-    Game --> UI : MoveResult::failure(NoPieceAtOrigin)
-  else pieza del rival
-    Game --> UI : MoveResult::failure(NotYourTurn)
-  else pieza propia
-    Game -> Rules : legalMoves(state, from)
-    Rules --> Game : vector<Move> (ya sin las que dejan al rey en jaque)
-    alt **jugada inválida**: ningún Move legal tiene destino "to"
-      Game --> UI : MoveResult::failure(IllegalMove)
-    else **jugada válida**
-      group fase 7 (promoción)
-        note over Game : Move de tipo Promotion sin promotion\no con !canPromoteTo → PromotionRequired | IllegalMove
+  alt GameOverPhase
+    Phase --> Game : MoveResult::failure(GameOver)
+  else InProgressPhase
+    Phase -> Game : performMove(from, to, promotion)
+    Game -> Game : ¿hay pieza en from?\n¿es del color que mueve?
+    alt no hay pieza (o from fuera del tablero)
+      Game --> Phase : failure(NoPieceAtOrigin)
+    else pieza del rival
+      Game --> Phase : failure(NotYourTurn)
+    else pieza propia
+      Game -> Rules : legalMoves(state, from)
+      Rules --> Game : vector<Move> (ya sin las que dejan al rey en jaque)
+      alt **jugada inválida**: ningún Move legal tiene destino "to"
+        Game --> Phase : failure(IllegalMove)
+      else **jugada válida**
+        Game -> Game : withPromotionChoice(move, promotion)
+        note right of Game : Promotion sin pieza → PromotionRequired\npieza no promovible (canPromoteTo) o pieza\nen una jugada que no promueve → InvalidPromotion
+        Game -> Cmd : execute(state_)
+        Cmd -> Cmd : before_ = state (Memento)
+        Cmd -> Rules : apply(state, move)
+        Rules --> Cmd : nuevo GameState
+        Game -> History : record(command)
+        note right of History : vacía la pila de rehacer
+        Game -> Rules : status(state)
+        Rules --> Game : GameStatus
+        Game -> Game : updatePhase()\n(Checkmate/Stalemate → GameOverPhase)
+        Game -> Obs : onMoveMade(move, state)
+        alt status == Check
+          Game -> Obs : onCheck(sideToMove)
+        else status == Checkmate o Stalemate
+          Game -> Obs : onGameOver(status, sideToMove)
+        end
+        Game --> Phase : MoveResult::success(move)
       end
-      Game -> Rules : apply(state, move)
-      Rules --> Game : nuevo GameState
-      Game -> Game : state_ = nuevo estado
-      group fase 7 (Command + Memento)
-        Game -> History : record(MoveCommand)
-        note right of History : guarda el estado previo;\nvacía la pila de rehacer
-      end
-      Game -> Obs : onMoveMade(move, state)
-      Game -> Rules : status(state)
-      Rules --> Game : GameStatus
-      opt status == Check
-        Game -> Obs : onCheck(sideToMove)
-      end
-      group fase 7 (fin de partida)
-        note over Game, Obs : updatePhase(); si Checkmate o Stalemate → onGameOver(status)
-      end
-      Game --> UI : MoveResult::success(move)
     end
+    Phase --> Game : MoveResult
   end
+  Game --> UI : MoveResult
 
   alt result.ok()
     note over UI : el tablero ya lo dibujó\nel observer (onMoveMade)
@@ -69,4 +75,14 @@ else casillas válidas
     UI -> Jugador : muestra el motivo (MoveError)
   end
 end
+
+== Deshacer (el rehacer es simétrico: execute de nuevo) ==
+Jugador -> UI : escribe "undo"
+UI -> Game : undo()
+Game -> History : undo(state_)
+History -> Cmd : undo(state)
+Cmd -> Cmd : state = before_
+Game -> Game : updatePhase()\n(deshacer un mate vuelve a InProgressPhase, D-10)
+Game -> Obs : onUndoRedo(state)
+Game --> UI : true
 @enduml

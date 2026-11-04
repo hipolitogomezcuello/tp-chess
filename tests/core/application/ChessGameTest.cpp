@@ -420,3 +420,93 @@ TEST_F(ChessGameTest, LegalMovesFromAnEmptyOrOutsideSquareAreEmpty) {
     EXPECT_TRUE(game.legalMovesFrom(sq("e4")).empty());
     EXPECT_TRUE(game.legalMovesFrom(Position(-1, 0)).empty());
 }
+
+// --- Deshacer y rehacer (Command + Memento) ---
+
+TEST_F(ChessGameTest, UndoRestoresThePreviousStateAndNotifies) {
+    ChessGame game(rules_, initialState());
+    game.addObserver(observer_);
+    move(game, "e2", "e4");
+
+    EXPECT_TRUE(game.undo());
+
+    EXPECT_TRUE(game.state().board().isEmpty(sq("e4")));
+    EXPECT_EQ(game.state().sideToMove(), Color::White);
+    ASSERT_EQ(observer_.statesAfterUndoRedo.size(), 1u);
+    EXPECT_EQ(observer_.statesAfterUndoRedo[0].sideToMove(), Color::White);
+}
+
+TEST_F(ChessGameTest, UndoAndRedoWithNothingToDoReturnFalseWithoutNotifying) {
+    ChessGame game(rules_, initialState());
+    game.addObserver(observer_);
+
+    EXPECT_FALSE(game.undo());
+    EXPECT_FALSE(game.redo());
+    EXPECT_TRUE(observer_.statesAfterUndoRedo.empty());
+}
+
+TEST_F(ChessGameTest, RedoReappliesTheUndoneMove) {
+    ChessGame game(rules_, initialState());
+    move(game, "e2", "e4");
+    game.undo();
+    game.addObserver(observer_);
+
+    EXPECT_TRUE(game.redo());
+
+    EXPECT_FALSE(game.state().board().isEmpty(sq("e4")));
+    EXPECT_EQ(game.state().sideToMove(), Color::Black);
+    EXPECT_EQ(observer_.statesAfterUndoRedo.size(), 1u);
+}
+
+TEST_F(ChessGameTest, ANewMoveAfterUndoDiscardsTheRedo) {
+    ChessGame game(rules_, initialState());
+    move(game, "e2", "e4");
+    game.undo();
+    move(game, "d2", "d4");
+
+    EXPECT_FALSE(game.redo());
+    EXPECT_TRUE(game.state().board().isEmpty(sq("e4")));
+}
+
+TEST_F(ChessGameTest, InvalidMovesAreNotRecorded) {
+    ChessGame game(rules_, initialState());
+    move(game, "e2", "e5");
+
+    EXPECT_FALSE(game.undo());
+}
+
+TEST_F(ChessGameTest, UndoingACheckmateReopensTheGame) {
+    // La fase se deriva del estado (D-10): al deshacer el mate se vuelve a InProgressPhase.
+    ChessGame game(rules_, initialState());
+    playFoolsMate(game);
+
+    ASSERT_TRUE(game.undo());
+
+    EXPECT_EQ(game.status(), GameStatus::InProgress);
+    EXPECT_TRUE(move(game, "d8", "e7").ok());
+}
+
+TEST_F(ChessGameTest, RedoingACheckmateEndsTheGameAgain) {
+    ChessGame game(rules_, initialState());
+    playFoolsMate(game);
+    game.undo();
+
+    ASSERT_TRUE(game.redo());
+
+    EXPECT_EQ(game.status(), GameStatus::Checkmate);
+    EXPECT_EQ(move(game, "a2", "a3").error(), MoveError::GameOver);
+}
+
+TEST_F(ChessGameTest, UndoRestoresTheEnPassantSquareToo) {
+    ChessGame game(rules_, initialState());
+    move(game, "e2", "e4");
+    move(game, "a7", "a6");
+    move(game, "e4", "e5");
+    move(game, "d7", "d5");
+    move(game, "e5", "d6");
+
+    game.undo();
+
+    // El Memento guarda el GameState entero: el al paso vuelve a estar disponible.
+    EXPECT_TRUE(move(game, "e5", "d6").ok());
+}

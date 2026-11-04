@@ -5,6 +5,7 @@
 
 #include "application/GameOverPhase.hpp"
 #include "application/InProgressPhase.hpp"
+#include "application/MoveCommand.hpp"
 #include "ports/MoveError.hpp"
 
 namespace chess::application {
@@ -54,7 +55,9 @@ MoveResult ChessGame::performMove(Position from, Position to, const std::optiona
     }
 
     const Move move = *completed.move();
-    state_ = rules_.apply(state_, move);
+    MoveCommand command(rules_, move);
+    command.execute(state_);
+    history_.record(std::move(command));
     updatePhase();
     notifyAfterMove(move);
     return MoveResult::success(move);
@@ -73,6 +76,24 @@ GameStatus ChessGame::status() const {
 
 std::vector<domain::Piece> ChessGame::promotionChoices() const {
     return rules_.promotionChoices(state_.sideToMove());
+}
+
+bool ChessGame::undo() {
+    if (!history_.undo(state_)) {
+        return false;
+    }
+    updatePhase();  // deshacer un mate vuelve a InProgressPhase (D-10)
+    notifyUndoRedo();
+    return true;
+}
+
+bool ChessGame::redo() {
+    if (!history_.redo(state_)) {
+        return false;
+    }
+    updatePhase();
+    notifyUndoRedo();
+    return true;
 }
 
 void ChessGame::addObserver(ports::GameObserver& observer) {
@@ -119,6 +140,12 @@ void ChessGame::notifyAfterMove(const Move& move) {
         } else if (isGameOver(current)) {
             observer.onGameOver(current, state_.sideToMove());
         }
+    }
+}
+
+void ChessGame::notifyUndoRedo() {
+    for (ports::GameObserver& observer : observers_) {
+        observer.onUndoRedo(state_);
     }
 }
 

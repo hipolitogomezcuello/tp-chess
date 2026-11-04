@@ -30,6 +30,8 @@ target_sources(chess_core PRIVATE
     application/ChessGame.cpp
     application/InProgressPhase.cpp
     application/GameOverPhase.cpp
+    application/MoveCommand.cpp
+    application/MoveHistory.cpp
 )
 
 # Los includes se escriben desde src/core: #include "domain/Position.hpp"

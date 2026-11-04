@@ -17,7 +17,6 @@ namespace chess::ports {
 // Patrón: Ports & Adapters — ver docs/arquitectura.md §3.1
 // Puerto de entrada (driving): lo único que los adaptadores (consola, raylib) conocen del núcleo.
 // Nunca ven ChessGame ni el RulesEngine. Lo implementa application::ChessGame.
-// undo() y redo() se suman en la misión 7.5 (D-13).
 class GameService {
 public:
     virtual ~GameService() = default;
@@ -36,6 +35,10 @@ public:
 
     // Piezas a las que puede promover el bando que mueve: la UI muestra su símbolo y manda su tipo.
     virtual std::vector<domain::Piece> promotionChoices() const = 0;
+
+    // Deshacen o rehacen la última jugada y avisan onUndoRedo. false si no había nada que hacer.
+    virtual bool undo() = 0;
+    virtual bool redo() = 0;
 
     // No toma propiedad: el observer debe vivir más que el juego (composition root).
     virtual void addObserver(GameObserver& observer) = 0;

@@ -259,6 +259,24 @@ una fase "esperando promoción" (D-18).
 **Dónde en el código:** `GameService::promotionChoices`, `RulesEngine::promotionChoices`/`canPromoteTo`,
 `ChessGame::withPromotionChoice`, `ConsoleUI::findPromotionChoice`.
 
+## D-20 — Deshacer con Command + Memento de estado completo
+**Estado:** vigente
+**Qué:** cada jugada válida se ejecuta como un `MoveCommand`, que antes de aplicarla guarda una copia
+del `GameState` entero (el Memento: tablero, turno y casilla de al paso). `undo` restaura esa copia;
+rehacer vuelve a ejecutar el comando. `MoveHistory` guarda los comandos en dos pilas y una jugada nueva
+vacía la de rehacer.
+**Por qué:** guardar el estado completo hace que deshacer sea trivialmente correcto para cualquier
+jugada (enroque, al paso, promoción, una pieza inventada) sin escribir la operación inversa de cada
+una: no hay que "desenrocar" ni "despromover". Además `GameState` ya era un value object copiable
+(lo usa `LegalMoveFilter`). Se descartó guardar solo un delta (qué pieza se movió y qué se capturó)
+porque obliga a `MoveApplier` a tener una inversa por cada `MoveKind` y cada caso nuevo es un bug
+posible. Rehacer re-ejecuta en lugar de guardar también el estado siguiente porque el motor es
+determinista y así el comando tiene un solo Memento.
+**Cuándo se rompería:** si el estado fuera grande (tableros enormes, historial de miles de jugadas
+en un análisis) la memoria crecería linealmente con copias casi iguales; ahí conviene el delta o
+estructuras persistentes. También si `apply` dejara de ser determinista (azar, reloj): rehacer
+tendría que guardar el estado resultante.
+**Dónde en el código:** `application/MoveCommand`, `application/MoveHistory`, `ChessGame::undo/redo`.
+
 <!-- Próximas decisiones (las completan los agentes cuando las implementen):
-     Command + Memento para deshacer/rehacer (snapshot completo vs. delta)
      raylib como UI gráfica (frente a SFML o Qt) -->

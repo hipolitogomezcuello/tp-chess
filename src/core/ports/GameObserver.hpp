@@ -10,7 +10,6 @@ namespace chess::ports {
 // Patrón: Observer — ver docs/arquitectura.md §3.9
 // Puerto de salida (driven): eventos que el juego emite sin saber quién escucha
 // (la UI de consola, la de raylib, un logger…). Se suscribe con GameService::addObserver.
-// onUndoRedo se suma en la misión 7.5, junto con deshacer/rehacer (D-13).
 class GameObserver {
 public:
     virtual ~GameObserver() = default;
@@ -25,6 +24,9 @@ public:
     // Después de una jugada la partida terminó: `result` es Checkmate o Stalemate y `sideToMove`
     // el bando que se quedó sin jugadas (en un mate, el que perdió).
     virtual void onGameOver(domain::GameStatus result, domain::Color sideToMove) = 0;
+
+    // Se deshizo o rehizo una jugada; `state` es el estado restaurado.
+    virtual void onUndoRedo(const domain::GameState& state) = 0;
 };
 
 }  // namespace chess::ports

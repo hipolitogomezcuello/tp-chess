@@ -51,6 +51,11 @@ bool ConsoleUI::execute(const std::vector<std::string>& words) {
     }
     if (words.size() == 1 && words[0] == "help") {
         showHelp();
+    } else if (words.size() == 1 && words[0] == "undo") {
+        // Si se pudo, el ConsoleRenderer ya dibujó el tablero restaurado (onUndoRedo).
+        out_ << (game_.undo() ? "Se deshizo la última jugada.\n" : "No hay jugadas para deshacer.\n");
+    } else if (words.size() == 1 && words[0] == "redo") {
+        out_ << (game_.redo() ? "Se rehízo la jugada.\n" : "No hay jugadas para rehacer.\n");
     } else if (words.size() == 2 && words[0] == "moves") {
         showMoves(words[1]);
     } else if (words.size() == 2) {
@@ -143,6 +148,8 @@ void ConsoleUI::showHelp() {
          << "  e2 e4     mover la pieza de e2 a e4\n"
          << "  e7 e8 q   mover y promover el peón (q, r, b, n o el nombre de la pieza)\n"
          << "  moves e2  ver a dónde puede ir la pieza de e2\n"
+         << "  undo      deshacer la última jugada\n"
+         << "  redo      rehacer la jugada deshecha\n"
          << "  help      mostrar esta ayuda\n"
          << "  quit      salir\n";
 }

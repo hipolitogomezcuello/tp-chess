@@ -31,10 +31,13 @@ public:
         gameOvers.push_back({result, sideToMove});
     }
 
+    void onUndoRedo(const domain::GameState& state) override { statesAfterUndoRedo.push_back(state); }
+
     std::vector<domain::Move> movesMade;
     std::vector<domain::GameState> statesAfterMove;
     std::vector<domain::Color> checks;
     std::vector<GameOverEvent> gameOvers;
+    std::vector<domain::GameState> statesAfterUndoRedo;
 };
 
 }  // namespace chess::testing

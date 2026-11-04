@@ -43,6 +43,8 @@ add_executable(chess_tests
     core/domain/RulesEngineTest.cpp
     core/ports/MoveResultTest.cpp
     core/application/ChessGameTest.cpp
+    core/application/MoveCommandTest.cpp
+    core/application/MoveHistoryTest.cpp
 )
 # Helpers compartidos por los tests: #include "support/BoardBuilder.hpp"
 target_include_directories(chess_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/core)
