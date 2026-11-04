@@ -28,6 +28,8 @@ package "chess::adapters" as adapters <<Adaptador>> {
   }
   package "chess::adapters::raylib" as raylibAdapter {
     [RaylibUI]
+    [BoardInteraction]
+    [BoardLayout]
   }
 }
 
@@ -53,8 +55,10 @@ package "Bibliotecas externas" as external {
   [GoogleTest] as gtest
 }
 
-package "tests/core" as tests {
+package "tests" as tests {
   [chess_tests] as chessTests
+  [chess_console_tests] as consoleTests
+  [chess_raylib_tests] as raylibTests
 }
 
 ' --- Adaptadores driving: usan el puerto de entrada ---
@@ -65,6 +69,9 @@ package "tests/core" as tests {
 [RaylibUI] ..|> GameObserver : implementa
 [ConsoleUI] --> [AlgebraicNotation]
 [ConsoleRenderer] --> [AlgebraicNotation]
+[RaylibUI] --> [BoardInteraction] : clicks
+[RaylibUI] --> [BoardLayout] : píxel ↔ casilla
+[BoardInteraction] --> GameService : usa
 [RaylibUI] --> raylibLib
 
 ' --- Dentro del núcleo ---
@@ -86,9 +93,14 @@ mainRaylib --> raylibAdapter : crea
 mainRaylib --> application : crea
 mainRaylib --> domain : registra piezas
 
-' --- Tests: solo núcleo ---
+' --- Tests: los del núcleo no conocen ningún adaptador ---
 chessTests --> core
 chessTests --> gtest
+consoleTests --> console
+consoleTests --> gtest
+raylibTests --> [BoardInteraction]
+raylibTests --> [BoardLayout]
+raylibTests --> gtest
 
 note bottom of core
   **Regla de dependencias**

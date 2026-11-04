@@ -101,7 +101,7 @@ Leyenda: `[ ]` pendiente · `[~]` en curso · `[x]` hecha
 ## Fase 8 — Adaptador raylib
 
 - [x] **8.1** raylib vía `FetchContent` y el target `chess_raylib`.
-- [ ] **8.2** `RaylibUI`: dibujo del tablero, selección con el mouse, resaltado de jugadas legales, promoción y deshacer/rehacer.
+- [x] **8.2** `RaylibUI`: dibujo del tablero, selección con el mouse, resaltado de jugadas legales, promoción y deshacer/rehacer.
 - [ ] **8.3** `app/main_raylib.cpp`. Verificar que **no se tocó nada de `src/core/`** para agregar esta UI.
 
 ## Fase 9 — Entregables

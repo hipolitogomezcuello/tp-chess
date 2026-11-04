@@ -1,16 +1,11 @@
 @startuml clases-aplicacion
 ' Diagrama de clases de aplicación, puertos y adaptadores (misión 1.3, actualizado en la 7.7).
-' Elementos marcados <<opcional>> pertenecen a la fase 8 (RaylibUI).
 title Aplicación, puertos y adaptadores
 
 set separator none
 skinparam shadowing false
 skinparam classAttributeIconSize 0
 hide empty members
-skinparam class {
-  BackgroundColor<<opcional>> #F5F5F5
-  BorderColor<<opcional>> #9E9E9E
-}
 
 ' ===================== Puertos =====================
 package "chess::ports" {
@@ -143,9 +138,32 @@ package "chess::adapters::console" {
 }
 
 package "chess::adapters::raylib" {
-  class RaylibUI <<Adapter>> <<opcional>> {
-    +RaylibUI(game: GameService&)
-    +run(): void
+  class RaylibUI <<Adapter>> {
+    +run(game: GameService&): void
+    +onMoveMade(move: const Move&, state: const GameState&): void
+    +onCheck(colorInCheck: Color): void
+    +onGameOver(result: GameStatus, sideToMove: Color): void
+    +onUndoRedo(state: const GameState&): void
+    -lastMove_: optional<Move>
+    -message_: string
+  }
+  class BoardInteraction {
+    +BoardInteraction(game: GameService&)
+    +click(square: Position): void
+    +choosePromotion(type: const PieceTypeId&): void
+    +cancel(): void
+    +undo(): bool
+    +redo(): bool
+    +selected(): const optional<Position>&
+    +highlightedMoves(): const vector<Move>&
+    +awaitingPromotion(): bool
+    +promotionChoices(): vector<Piece>
+  }
+  class BoardLayout {
+    +BoardLayout(dimensions: BoardDimensions, originX: int, originY: int, boardPixels: int)
+    +squareSize(): int
+    +topLeftOf(position: Position): Point
+    +squareAt(x: int, y: int): optional<Position>
   }
 }
 
@@ -176,7 +194,9 @@ ConsoleUI "1" --> "1" GameService : usa
 ConsoleUI ..> AlgebraicNotation
 ConsoleRenderer ..> AlgebraicNotation : format
 ConsoleUI ..> MoveResult : traduce MoveError a texto
-RaylibUI "1" --> "1" GameService : usa
+RaylibUI ..> BoardInteraction : crea en run()
+RaylibUI ..> BoardLayout : píxel ↔ casilla
+BoardInteraction "1" --> "1" GameService : usa
 
 ' ===================== Notas =====================
 note top of GameService
@@ -204,6 +224,12 @@ note bottom of MoveCommand
   undo lo restaura; rehacer = execute
   otra vez. Una jugada nueva vacía la
   pila de rehacer (MoveHistory).
+end note
+
+note bottom of BoardInteraction
+  Qué significa cada click, sin raylib
+  (se testea sin ventana): seleccionar,
+  mover, esperar la pieza de la promoción.
 end note
 
 note right of ChessGame

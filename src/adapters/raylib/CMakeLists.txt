@@ -12,6 +12,8 @@ set(BUILD_GAMES OFF CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(raylib)
 
 add_library(chess_raylib_adapter STATIC
+    BoardLayout.cpp
+    BoardInteraction.cpp
     RaylibUI.cpp
 )
 

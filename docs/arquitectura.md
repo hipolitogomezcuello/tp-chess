@@ -52,6 +52,7 @@ que sea testeable sin levantar nada. Con puertos explícitos, la UI es un detall
 | `chess_raylib` | ejecutable | `app/main_raylib.cpp` | `chess_raylib_adapter` |
 | `chess_tests` | ejecutable de tests | `tests/core/**` | `chess_core`, GoogleTest |
 | `chess_console_tests` | ejecutable de tests | `tests/adapters/console/**` | `chess_console_adapter`, GoogleTest |
+| `chess_raylib_tests` | ejecutable de tests | `tests/adapters/raylib/**` | `chess_raylib_adapter`, GoogleTest |
 
 El adaptador de consola es una librería aparte para poder testearlo (notación, dibujo y loop de
 comandos con streams en memoria) sin mezclar esos tests con los del núcleo: `chess_tests` sigue sin
@@ -299,9 +300,16 @@ resultado esperado y se devuelve en `MoveResult`. Las excepciones quedan para er
 - `AlgebraicNotation`: convierte `"e2"` ↔ `Position`. Es una cuestión de presentación, por eso **no** está en el dominio.
 
 ### 6.2 raylib (`src/adapters/raylib`)
-- `RaylibUI`: ventana, click para elegir origen y destino, resalta los movimientos legales (`legalMovesFrom`).
-- Piezas dibujadas con letras o formas simples (minimalista, sin assets obligatorios).
-- Teclas: `U` deshace y `R` rehace.
+- `RaylibUI`: ventana y loop de raylib. Dibuja el tablero según sus dimensiones, las piezas como un
+  círculo con `symbol()`, la última jugada, la pieza elegida con sus destinos y el rey en jaque (por el
+  trait `isRoyal`). Implementa `GameObserver` para los avisos de jaque, mate y ahogado. Es la única
+  clase que incluye `raylib.h`, y solo en el `.cpp`.
+- `BoardInteraction`: el significado de cada click, sin raylib: seleccionar una pieza propia, mover a
+  un destino resaltado, esperar la elección de la pieza en una promoción (`promotionChoices`, D-19),
+  cancelar, deshacer y rehacer. Solo conoce `GameService`.
+- `BoardLayout`: traduce píxeles ↔ casillas (negras arriba) para cualquier tamaño de tablero.
+- Controles: click izquierdo elige y mueve; `Esc` o click derecho cancelan; `U` deshace y `R` rehace.
+- `BoardLayout` y `BoardInteraction` se testean en `chess_raylib_tests` sin abrir ninguna ventana.
 
 ## 7. Flujo de una jugada (resumen del diagrama de secuencia)
 
