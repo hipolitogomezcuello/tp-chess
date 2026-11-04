@@ -102,7 +102,11 @@ Leyenda: `[ ]` pendiente · `[~]` en curso · `[x]` hecha
 
 - [x] **8.1** raylib vía `FetchContent` y el target `chess_raylib`.
 - [x] **8.2** `RaylibUI`: dibujo del tablero, selección con el mouse, resaltado de jugadas legales, promoción y deshacer/rehacer.
-- [ ] **8.3** `app/main_raylib.cpp`. Verificar que **no se tocó nada de `src/core/`** para agregar esta UI.
+- [x] **8.3** `app/main_raylib.cpp`. Verificar que **no se tocó nada de `src/core/`** para agregar esta UI.
+  - `git diff --stat 15383e9..HEAD -- src/core` (desde el cierre de la fase 7) está vacío: la UI gráfica
+    entró sin cambiar una línea del núcleo. `main_raylib.cpp` arma el mismo grafo que `main_console.cpp`.
+  - Verificado: compila sin warnings, los 300 tests pasan y la ventana abre. Falta jugar una partida
+    a mano con el mouse (selección, promoción, deshacer) antes de la entrega.
 
 ## Fase 9 — Entregables
 
