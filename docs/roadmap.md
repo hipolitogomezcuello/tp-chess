@@ -68,7 +68,7 @@ Leyenda: `[ ]` pendiente · `[~]` en curso · `[x]` hecha
 
 - [x] **5.1** Puertos `GameService` y `GameObserver`, y el value object `MoveResult`.
 - [x] **5.2** `ChessGame`: turnos, validación y captura. Tests con `FakeObserver`.
-- [ ] **5.3** Actualizar `clases-aplicacion.puml` y `secuencia-jugada.puml`.
+- [x] **5.3** Actualizar `clases-aplicacion.puml` y `secuencia-jugada.puml`.
 
 ## Fase 6 — Adaptador de consola → 🎯 MVP OBLIGATORIO
 
