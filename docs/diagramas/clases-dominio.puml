@@ -102,7 +102,7 @@ package "chess::domain" {
       +isPromotable: bool = false
     }
 
-    class PieceDefinition {
+    class PieceDefinition <<no copiable>> {
       +PieceDefinition(id: PieceTypeId, symbol: char, rules: vector<unique_ptr<MovementRule>>, traits: PieceTraits)
       +id(): const PieceTypeId&
       +symbol(): char
@@ -124,7 +124,7 @@ package "chess::domain" {
 
     class PieceRegistry <<Registry>> {
       +add(definition: shared_ptr<const PieceDefinition>): void
-      +find(id: PieceTypeId): shared_ptr<const PieceDefinition>
+      +find(id: PieceTypeId): shared_ptr<const PieceDefinition> (nullptr si no está)
       +contains(id: PieceTypeId): bool
       +promotableTypes(): vector<PieceTypeId>
     }
@@ -170,6 +170,14 @@ package "chess::domain" {
     class PawnRule {
       +PawnRule()
     }
+    class RuleHelpers <<utility>> {
+      +{static} movesOntoReachableSquares(ctx: const MoveContext&, squares: vector<Position>): vector<Move>
+    }
+    note bottom of RuleHelpers
+      Función libre (no es una clase en C++).
+      Vacía → Normal, enemiga → Capture,
+      propia → se descarta.
+    end note
     class CastlingRule <<opcional>> {
       +CastlingRule()
     }
@@ -269,6 +277,8 @@ MovementRule <|.. SlidingRule
 MovementRule <|.. LeaperRule
 MovementRule <|.. PawnRule
 MovementRule <|.. CastlingRule
+SlidingRule ..> RuleHelpers : usa
+LeaperRule ..> RuleHelpers : usa
 MovementRule ..> MoveContext : lee
 MovementRule ..> Move : genera
 MoveContext "1" --> "1" GameState

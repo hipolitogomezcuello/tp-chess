@@ -112,6 +112,11 @@ Reglas de diseño que surgieron de la revisión (misión 1.7, ver `decisiones.md
 | `PawnRule` | Avance simple/doble, captura diagonal, al paso; marca la promoción al llegar a la última fila. | Peón |
 | `CastlingRule` | Genera el enroque si el rey y una pieza `canCastleWith` no se movieron y las casillas intermedias están libres. | Rey |
 
+`SlidingRule` y `LeaperRule` atacan las mismas casillas a las que se mueven, así que generan sus
+jugadas con la función libre `movesOntoReachableSquares` (`RuleHelpers.hpp`): casilla vacía → `Normal`,
+enemiga → `Capture`, propia → se descarta. `attackedSquares` incluye la casilla de la primera pieza
+propia que corta la línea (está *defendida*), así el rey rival no puede capturarla.
+
 **Por qué `attackedSquares` está separado de `candidateMoves`:** el peón ataca en diagonal pero avanza
 recto, y el enroque mueve al rey pero no "ataca". Separarlos evita casos especiales en la detección de jaque.
 
