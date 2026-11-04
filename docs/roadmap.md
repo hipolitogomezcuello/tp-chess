@@ -62,7 +62,7 @@ Leyenda: `[ ]` pendiente · `[~]` en curso · `[x]` hecha
 - [x] **4.2** `AttackDetector` (`isSquareAttacked`, `isInCheck`).
 - [x] **4.3** `LegalMoveFilter`: piezas clavadas y el rey que no puede entrar en jaque.
 - [x] **4.4** `RulesEngine` (Facade) y `GameStatusEvaluator` (por ahora: `InProgress` y `Check`).
-- [ ] **4.5** Actualizar diagramas.
+- [x] **4.5** Actualizar diagramas.
 
 ## Fase 5 — Aplicación y puertos
 

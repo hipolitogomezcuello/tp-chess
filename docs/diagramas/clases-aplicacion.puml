@@ -95,7 +95,7 @@ package "chess::domain" {
     +legalMoves(state, from): vector<Move>
     +apply(state, move): GameState
     +status(state): GameStatus
-    +canPromoteTo(id): bool
+    +canPromoteTo(id): bool «fase 7»
   }
   class GameState <<Memento>>
   class Move

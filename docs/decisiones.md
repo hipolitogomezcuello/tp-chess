@@ -151,9 +151,47 @@ tendría que instalar.
 muchas y pesadas (ahí conviene un gestor de paquetes con caché binaria).
 **Dónde en el código:** `CMakeLists.txt`, `src/core/CMakeLists.txt`, `tests/CMakeLists.txt`.
 
+## D-13 — Las dependencias se agregan cuando la fase las necesita
+**Estado:** vigente
+**Qué:** las clases del motor se implementan con las dependencias que usan hoy. `MoveApplier` no recibe la
+`PieceFactory`, `RulesEngine` no recibe el `PieceRegistry` (ni tiene `canPromoteTo`) y
+`GameStatusEvaluator` solo recibe el `AttackDetector`. Las tres crecen en la fase 7 (promoción, mate y
+ahogado). El diagrama muestra lo implementado y anota lo que viene.
+**Por qué:** un parámetro guardado y nunca usado es código muerto que confunde al lector y que los tests no
+pueden cubrir (YAGNI, CLAUDE.md regla 9). Se descartó implementar ya la promoción "porque era fácil":
+saltea el orden del roadmap y deja funcionalidad opcional sin su UI.
+**Cuándo se rompería:** si cambiar esas firmas en la fase 7 obligara a tocar muchos clientes. Hoy el único
+cliente de `RulesEngine` es el composition root (y `ChessGame`, que lo recibe armado), así que el costo es
+una línea.
+**Dónde en el código:** `MoveApplier`, `RulesEngine`, `GameStatusEvaluator`.
+
+## D-14 — El turno lo valida la aplicación; el filtro usa el color de la pieza
+**Estado:** vigente
+**Qué:** `RulesEngine::legalMoves(state, from)` devuelve las jugadas legales de la pieza en `from` sea o no
+su turno. `LegalMoveFilter` protege al rey del color **de la pieza que mueve**, no de `sideToMove`. Rechazar
+una jugada fuera de turno es responsabilidad de `ChessGame` (`MoveError::NotYourTurn`).
+**Por qué:** el turno es una regla de flujo de la partida (aplicación), no de geometría (dominio). Además,
+así el motor responde bien consultas como "¿qué podría hacer esta pieza?" para resaltar en la UI, y los
+tests de reglas no necesitan ajustar el turno.
+**Cuándo se rompería:** si una variante tuviera turnos no alternados (p. ej. dos jugadas seguidas), el
+turno pasaría a ser una política del dominio y `MoveApplier` dejaría de alternarlo a ciegas.
+**Dónde en el código:** `RulesEngine::legalMoves`, `LegalMoveFilter::filter`, `ChessGame` (fase 5).
+
+## D-15 — `attackedSquares` incluye la casilla de la pieza propia que corta la línea
+**Estado:** vigente
+**Qué:** una pieza "ataca" también las casillas ocupadas por piezas de su color hasta la primera que la
+bloquea (las *defiende*). `candidateMoves` descarta esas casillas; `attackedSquares` no.
+**Por qué:** con esto `LegalMoveFilter` impide que el rey capture una pieza defendida sin ningún caso
+especial: después de la captura, la pieza defensora ataca esa casilla. Se descartó la alternativa de
+excluirlas, que obligaba a un chequeo aparte de "pieza defendida".
+**Cuándo se rompería:** si una regla atacara casillas distintas de las que alcanza y las piezas propias
+cambiaran ese alcance de otra forma (p. ej. piezas que saltan sobre propias pero no sobre enemigas). Esa
+regla tendría que implementar su propio `attackedSquares`.
+**Dónde en el código:** `SlidingRule`, `LeaperRule`, `RuleHelpers`, `AttackDetector`.
+
 <!-- Próximas decisiones (las completan los agentes cuando las implementen):
-     D-13 Command + Memento para deshacer/rehacer (snapshot completo vs. delta)
-     D-14 State para las fases de la partida (complementa D-10)
-     D-15 Observer como puerto de salida
-     D-16 Inyección de dependencias manual y composition root (sin contenedor de DI)
-     D-17 raylib como UI gráfica (frente a SFML o Qt) -->
+     D-16 Command + Memento para deshacer/rehacer (snapshot completo vs. delta)
+     D-17 State para las fases de la partida (complementa D-10)
+     D-18 Observer como puerto de salida
+     D-19 Inyección de dependencias manual y composition root (sin contenedor de DI)
+     D-20 raylib como UI gráfica (frente a SFML o Qt) -->

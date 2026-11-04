@@ -158,8 +158,8 @@ Helpers sin estado: `Directions::orthogonals()`, `diagonals()`, `all()` y `knigh
 | `AttackDetector` | `isSquareAttacked(state, position, byColor)` y `isInCheck(state, color)` (busca la pieza `isRoyal`). |
 | `MoveApplier` | Aplica un `Move` a un `GameState` y devuelve el nuevo estado: mueve las piezas, resuelve la captura al paso, el enroque y la promoción, y actualiza derechos y turno. Es puro: no muta la entrada. |
 | `LegalMoveFilter` | Descarta los movimientos pseudo-legales que dejan al propio rey en jaque (los aplica sobre una copia y consulta `AttackDetector`). |
-| `GameStatusEvaluator` | Calcula el estado de la partida (`InProgress`, `Check`, `Checkmate`, `Stalemate`). |
-| `RulesEngine` | Fachada del dominio: `legalMoves(state, from)`, `apply(state, move)`, `status(state)`, `canPromoteTo(id)`. Se construye con un `PieceRegistry&` y crea y posee las clases anteriores (incluida la `PieceFactory`). |
+| `GameStatusEvaluator` | Calcula el estado de la partida para el bando que mueve. Hoy: `InProgress` o `Check` (solo necesita el `AttackDetector`). En la fase 7 recibe `MoveGenerator` y `LegalMoveFilter` para `Checkmate` y `Stalemate`. |
+| `RulesEngine` | Fachada del dominio: `legalMoves(state, from)`, `apply(state, move)`, `status(state)`. Crea y posee las clases anteriores; no se copia. `legalMoves` no mira el turno (lo valida la aplicación, D-14). En la fase 7 se construye con un `PieceRegistry&`, crea la `PieceFactory` para la promoción y suma `canPromoteTo(id)` (D-13). |
 
 Pipeline de validación de una jugada:
 ```

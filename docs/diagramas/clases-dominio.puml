@@ -212,13 +212,17 @@ package "chess::domain" {
 
   ' ===================== Motor de reglas =====================
   package "Motor de reglas" {
-    class RulesEngine <<Facade>> {
-      +RulesEngine(registry: const PieceRegistry&)
+    class RulesEngine <<Facade>> <<no copiable>> {
+      +RulesEngine()
       +legalMoves(state: const GameState&, from: Position): vector<Move>
       +apply(state: const GameState&, move: const Move&): GameState
       +status(state: const GameState&): GameStatus
-      +canPromoteTo(id: PieceTypeId): bool
     }
+    note right of RulesEngine
+      Fase 7: RulesEngine(registry: const PieceRegistry&),
+      crea la PieceFactory (promoción) y agrega
+      canPromoteTo(id: PieceTypeId): bool (D-08, D-13).
+    end note
 
     class MoveGenerator {
       +movesFrom(state: const GameState&, from: Position): vector<Move>
@@ -244,9 +248,14 @@ package "chess::domain" {
     }
 
     class GameStatusEvaluator {
-      +GameStatusEvaluator(generator: const MoveGenerator&, filter: const LegalMoveFilter&, detector: const AttackDetector&)
+      +GameStatusEvaluator(detector: const AttackDetector&)
       +evaluate(state: const GameState&): GameStatus
     }
+    note bottom of GameStatusEvaluator
+      Hoy: InProgress o Check.
+      Fase 7: recibe también MoveGenerator y
+      LegalMoveFilter para Checkmate y Stalemate.
+    end note
   }
 }
 
@@ -296,7 +305,6 @@ StartingPositionProvider ..> PieceFactory : usa
 StartingPositionProvider ..> Board : crea
 
 ' Motor
-RulesEngine "1" *-- "1" PieceFactory
 RulesEngine "1" *-- "1" MoveGenerator
 RulesEngine "1" *-- "1" AttackDetector
 RulesEngine "1" *-- "1" MoveApplier
@@ -307,8 +315,6 @@ MoveGenerator ..> MovementRule : recorre las reglas de la pieza
 AttackDetector ..> MovementRule : attackedSquares
 LegalMoveFilter "1" --> "1" MoveApplier
 LegalMoveFilter "1" --> "1" AttackDetector
-GameStatusEvaluator "1" --> "1" MoveGenerator
-GameStatusEvaluator "1" --> "1" LegalMoveFilter
 GameStatusEvaluator "1" --> "1" AttackDetector
 
 ' ===================== Notas de patrones =====================

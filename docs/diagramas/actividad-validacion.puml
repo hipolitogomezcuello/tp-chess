@@ -4,6 +4,14 @@ title Validación de una jugada — candidatos → pseudo-legales → legales �
 
 skinparam shadowing false
 
+legend top right
+  Implementado (fases 3 y 4): pasos 1 a 3 y, en el 4,
+  solo Check / InProgress.
+  Fase 7 (opcional): condición de jaque del enroque,
+  bloque de promoción, Checkmate y Stalemate.
+  Los chequeos de origen y turno los hace ChessGame (fase 5).
+endlegend
+
 start
 :Llega makeMove(from, to, promotion);
 
