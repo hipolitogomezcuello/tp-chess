@@ -111,3 +111,15 @@ TEST_F(ConsoleRendererTest, PromotionsShowTheNewPiece) {
 
     EXPECT_TRUE(printed("e7-e8=Q"));
 }
+
+TEST_F(ConsoleRendererTest, CastlingIsAnnounced) {
+    const GameState after(builder()
+                              .placeMoved("g1", kKing, Color::White)
+                              .placeMoved("f1", kRook, Color::White)
+                              .build(),
+                          Color::Black);
+
+    renderer_.onMoveMade(Move::castling(sq("e1"), sq("g1"), sq("h1"), sq("f1")), after);
+
+    EXPECT_TRUE(printed("e1-g1 (enroque)"));
+}

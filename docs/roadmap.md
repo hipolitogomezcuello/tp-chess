@@ -85,7 +85,9 @@ Leyenda: `[ ]` pendiente · `[~]` en curso · `[x]` hecha
 
 - [x] **7.1** Jaque mate y ahogado en `GameStatusEvaluator`, más el patrón State (`GamePhase`) en `ChessGame`.
 - [x] **7.2** Promoción: extender `PawnRule` y `MoveApplier`, y el parámetro `promotion` en `makeMove`.
-- [ ] **7.3** Enroque: `CastlingRule` y los derechos de enroque en `GameState`.
+- [x] **7.3** Enroque: `CastlingRule` y los derechos de enroque en `GameState`.
+  - Los derechos no se guardan en `GameState`: se derivan de `Piece::hasMoved` (D-06, revisión 1.7).
+    La condición de jaque (no enrocar en jaque ni cruzando casillas atacadas) está en `LegalMoveFilter` (D-07).
 - [ ] **7.4** Captura al paso: `PawnRule` y la casilla de al paso en `GameState`.
 - [ ] **7.5** Deshacer y rehacer: `MoveCommand` y `MoveHistory` (Command + Memento), con comandos en la consola.
 - [ ] **7.6** Tests de extensibilidad: una pieza inventada y un tablero de 10×10.

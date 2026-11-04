@@ -69,7 +69,7 @@ conocer ningún adaptador.
 | `Offset` | Desplazamiento `(dFile, dRank)`. Usado para direcciones y saltos. |
 | `BoardDimensions` | `files × ranks` (8×8 por defecto). `contains(Position)`. **Permite tableros de otro tamaño.** |
 | `PieceTypeId` | Identificador de tipo de pieza (string corto: `"pawn"`, `"rook"`…). **No es un enum cerrado**: así se agregan piezas sin modificar código existente. |
-| `Move` | `from`, `to`, `MoveKind` (`Normal`, `Capture`, `DoublePawnPush`, `EnPassant`, `Castling`, `Promotion`) y datos extra opcionales (pieza de promoción, movimiento de la torre en el enroque, casilla capturada al paso). |
+| `Move` | `from`, `to`, `MoveKind` (`Normal`, `Capture`, `DoublePawnPush`, `EnPassant`, `Castling`, `Promotion`) y datos extra opcionales (pieza de promoción, movimiento de la torre en el enroque, casilla capturada al paso). Las jugadas especiales se crean con fábricas estáticas: `Move::castling(kingFrom, kingTo, rookFrom, rookTo)`. |
 
 ### 2.2 Piezas: composición, no herencia
 
@@ -163,7 +163,7 @@ Helpers sin estado: `Directions::orthogonals()`, `diagonals()`, `all()` y `knigh
 | `MoveGenerator` | Recorre las reglas de la pieza y junta los movimientos **pseudo-legales**. |
 | `AttackDetector` | `isSquareAttacked(state, position, byColor)` y `isInCheck(state, color)` (busca la pieza `isRoyal`). |
 | `MoveApplier` | Aplica un `Move` a un `GameState` y devuelve el nuevo estado: mueve las piezas, resuelve la captura al paso, el enroque y la promoción (crea la pieza elegida con la `PieceFactory` que recibe por constructor), y actualiza `hasMoved` y el turno. Es puro: no muta la entrada. |
-| `LegalMoveFilter` | Descarta los movimientos pseudo-legales que dejan al propio rey en jaque (los aplica sobre una copia y consulta `AttackDetector`). |
+| `LegalMoveFilter` | Descarta los movimientos pseudo-legales que dejan al propio rey en jaque (los aplica sobre una copia y consulta `AttackDetector`). En un `Castling` además exige que el rey no esté en jaque ni cruce casillas atacadas (D-07). |
 | `GameStatusEvaluator` | Calcula el estado de la partida para el bando que mueve con dos preguntas: ¿está en jaque? (`AttackDetector`) y ¿tiene alguna jugada legal? (`MoveGenerator` + `LegalMoveFilter`). En jaque y sin jugadas es `Checkmate`; sin jaque y sin jugadas, `Stalemate`. |
 | `RulesEngine` | Fachada del dominio: `legalMoves(state, from)`, `apply(state, move)`, `status(state)`. Crea y posee las clases anteriores; no se copia. `legalMoves` no mira el turno (lo valida la aplicación, D-14). Se construye con un `PieceRegistry&`, crea la `PieceFactory` para la promoción y responde `canPromoteTo(id)` y `promotionChoices(color)` (D-08, D-19). |
 

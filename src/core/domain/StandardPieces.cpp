@@ -4,6 +4,7 @@
 #include <utility>
 #include <vector>
 
+#include "domain/CastlingRule.hpp"
 #include "domain/Directions.hpp"
 #include "domain/LeaperRule.hpp"
 #include "domain/PawnRule.hpp"
@@ -43,8 +44,9 @@ void StandardPieces::registerAll(PieceRegistry& registry) {
     add(registry, kKnight, 'N', single(std::make_unique<LeaperRule>(Directions::knightJumps())), promotable);
     add(registry, kBishop, 'B', single(std::make_unique<SlidingRule>(Directions::diagonals())), promotable);
     add(registry, kQueen, 'Q', single(std::make_unique<SlidingRule>(Directions::all())), promotable);
-    // El enroque (CastlingRule) se suma a las reglas del rey en la fase 7.
-    add(registry, kKing, 'K', single(std::make_unique<LeaperRule>(Directions::all())), royal);
+    Rules kingRules = single(std::make_unique<LeaperRule>(Directions::all()));
+    kingRules.push_back(std::make_unique<CastlingRule>());
+    add(registry, kKing, 'K', std::move(kingRules), royal);
 }
 
 }  // namespace chess::domain

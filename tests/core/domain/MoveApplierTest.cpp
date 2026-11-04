@@ -93,3 +93,19 @@ TEST_F(MoveApplierTest, PromotionWithoutAChosenPieceLeavesThePawn) {
 
     EXPECT_EQ(next.board().pieceAt(sq("e8"))->type(), kPawn);
 }
+
+TEST_F(MoveApplierTest, CastlingMovesTheKingAndTheRook) {
+    const MoveApplier applier(factory_);
+    const GameState state(builder()
+                              .place("e1", kKing, Color::White)
+                              .place("h1", kRook, Color::White)
+                              .build());
+
+    const GameState next = applier.apply(state, Move::castling(sq("e1"), sq("g1"), sq("h1"), sq("f1")));
+
+    EXPECT_EQ(next.board().pieceAt(sq("g1"))->type(), kKing);
+    EXPECT_EQ(next.board().pieceAt(sq("f1"))->type(), kRook);
+    EXPECT_TRUE(next.board().pieceAt(sq("f1"))->hasMoved());
+    EXPECT_TRUE(next.board().isEmpty(sq("e1")));
+    EXPECT_TRUE(next.board().isEmpty(sq("h1")));
+}

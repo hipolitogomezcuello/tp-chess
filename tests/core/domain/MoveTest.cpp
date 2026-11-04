@@ -40,3 +40,25 @@ TEST(MoveTest, EqualityComparesEveryField) {
     EXPECT_NE(Move(sq("e7"), sq("e8"), MoveKind::Promotion).withPromotion(PieceTypeId("queen")),
               Move(sq("e7"), sq("e8"), MoveKind::Promotion).withPromotion(PieceTypeId("rook")));
 }
+
+TEST(MoveTest, CastlingCarriesTheRookMove) {
+    const Move move = Move::castling(sq("e1"), sq("g1"), sq("h1"), sq("f1"));
+
+    EXPECT_EQ(move.kind(), MoveKind::Castling);
+    EXPECT_EQ(move.from(), sq("e1"));
+    EXPECT_EQ(move.to(), sq("g1"));
+    EXPECT_EQ(move.rookFrom(), sq("h1"));
+    EXPECT_EQ(move.rookTo(), sq("f1"));
+}
+
+TEST(MoveTest, OrdinaryMovesHaveNoRookMove) {
+    const Move move(sq("e1"), sq("f1"));
+
+    EXPECT_FALSE(move.rookFrom().has_value());
+    EXPECT_FALSE(move.rookTo().has_value());
+}
+
+TEST(MoveTest, CastlingMovesWithDifferentRooksAreDifferent) {
+    EXPECT_NE(Move::castling(sq("e1"), sq("g1"), sq("h1"), sq("f1")),
+              Move::castling(sq("e1"), sq("g1"), sq("a1"), sq("f1")));
+}

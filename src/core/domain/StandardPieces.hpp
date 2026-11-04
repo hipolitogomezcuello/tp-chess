@@ -8,7 +8,7 @@ namespace chess::domain {
 // Patrón: Factory + Registry — ver docs/arquitectura.md §3.4
 // Registra las 6 piezas clásicas componiendo reglas existentes (composición, §3.3):
 //   Torre = SlidingRule(orthogonals)    Alfil = SlidingRule(diagonals)   Reina = SlidingRule(all)
-//   Caballo = LeaperRule(knightJumps)   Rey = LeaperRule(all)            Peón = PawnRule
+//   Caballo = LeaperRule(knightJumps)   Rey = LeaperRule(all) + CastlingRule   Peón = PawnRule
 // Una pieza nueva NO se agrega acá: se registra aparte en el composition root.
 class StandardPieces {
 public:

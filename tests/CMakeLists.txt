@@ -32,6 +32,7 @@ add_executable(chess_tests
     core/domain/SlidingRuleTest.cpp
     core/domain/LeaperRuleTest.cpp
     core/domain/PawnRuleTest.cpp
+    core/domain/CastlingRuleTest.cpp
     core/domain/StandardPiecesTest.cpp
     core/domain/StandardStartingPositionTest.cpp
     core/domain/MoveGeneratorTest.cpp

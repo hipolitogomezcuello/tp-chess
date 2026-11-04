@@ -13,6 +13,10 @@ GameState MoveApplier::apply(const GameState& state, const Move& move) const {
     } else {
         board.place(move.to(), moved.withMoved());
     }
+    if (move.kind() == MoveKind::Castling) {
+        board.move(*move.rookFrom(), *move.rookTo());
+        board.place(*move.rookTo(), board.pieceAt(*move.rookTo())->withMoved());
+    }
     return GameState(std::move(board), opposite(state.sideToMove()));
 }
 

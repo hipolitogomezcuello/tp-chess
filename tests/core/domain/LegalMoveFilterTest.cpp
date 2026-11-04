@@ -128,3 +128,59 @@ TEST_F(LegalMoveFilterTest, UsesTheColorOfTheMovingPieceNotTheSideToMove) {
 
     EXPECT_TRUE(legalMovesFrom(state, "e2").empty());
 }
+
+// --- Enroque: la condición de jaque vive en el filtro (D-07) ---
+
+namespace {
+
+// Rey y torres blancas listos para enrocar, más lo que se agregue.
+chess::testing::BoardBuilder readyToCastle(chess::testing::BoardBuilder builder) {
+    builder.place("e1", chess::domain::StandardPieces::kKing, Color::White)
+        .place("a1", chess::domain::StandardPieces::kRook, Color::White)
+        .place("h1", chess::domain::StandardPieces::kRook, Color::White)
+        .place("a8", chess::domain::StandardPieces::kKing, Color::Black);
+    return builder;
+}
+
+}  // namespace
+
+TEST_F(LegalMoveFilterTest, BothCastlingsAreLegalWhenNothingIsAttacked) {
+    const GameState state(readyToCastle(builder()).build());
+
+    const auto moves = legalMovesFrom(state, "e1");
+
+    EXPECT_NE(chess::testing::findMoveTo(moves, sq("g1")), nullptr);
+    EXPECT_NE(chess::testing::findMoveTo(moves, sq("c1")), nullptr);
+}
+
+TEST_F(LegalMoveFilterTest, CannotCastleOutOfCheck) {
+    const GameState state(readyToCastle(builder()).place("e8", kRook, Color::Black).build());
+
+    const auto moves = legalMovesFrom(state, "e1");
+
+    EXPECT_EQ(chess::testing::findMoveTo(moves, sq("g1")), nullptr);
+    EXPECT_EQ(chess::testing::findMoveTo(moves, sq("c1")), nullptr);
+}
+
+TEST_F(LegalMoveFilterTest, CannotCastleThroughAnAttackedSquare) {
+    // La torre negra en f8 ataca f1: el rey no puede pasar por ahí, pero sí enrocar largo.
+    const GameState state(readyToCastle(builder()).place("f8", kRook, Color::Black).build());
+
+    const auto moves = legalMovesFrom(state, "e1");
+
+    EXPECT_EQ(chess::testing::findMoveTo(moves, sq("g1")), nullptr);
+    EXPECT_NE(chess::testing::findMoveTo(moves, sq("c1")), nullptr);
+}
+
+TEST_F(LegalMoveFilterTest, CannotCastleIntoCheck) {
+    const GameState state(readyToCastle(builder()).place("g8", kRook, Color::Black).build());
+
+    EXPECT_EQ(chess::testing::findMoveTo(legalMovesFrom(state, "e1"), sq("g1")), nullptr);
+}
+
+TEST_F(LegalMoveFilterTest, AnAttackedSquareTheKingDoesNotCrossDoesNotMatter) {
+    // En el enroque largo la torre pasa por b1, pero el rey no: que b1 esté atacada no lo impide.
+    const GameState state(readyToCastle(builder()).place("b8", kRook, Color::Black).build());
+
+    EXPECT_NE(chess::testing::findMoveTo(legalMovesFrom(state, "e1"), sq("c1")), nullptr);
+}

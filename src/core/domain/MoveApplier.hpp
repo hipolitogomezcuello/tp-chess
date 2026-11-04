@@ -11,7 +11,7 @@ namespace chess::domain {
 // No valida la jugada: eso ya lo hizo el pipeline (MoveGenerator → LegalMoveFilter).
 // En una promoción con pieza elegida, crea la pieza nueva con la PieceFactory (D-08); sin pieza
 // elegida (cuando el filtro la prueba) el peón queda en la casilla, que para el jaque da igual.
-// Pendiente para las misiones 7.3 y 7.4: enroque y al paso.
+// En el enroque mueve también la torre (rookFrom → rookTo). Pendiente para la misión 7.4: al paso.
 class MoveApplier {
 public:
     // Guarda una referencia: la fábrica la posee RulesEngine (o el test).

@@ -59,6 +59,9 @@ void ConsoleRenderer::onMoveMade(const domain::Move& move, const domain::GameSta
         out_ << '=' << static_cast<char>(std::toupper(static_cast<unsigned char>(
                            state.board().pieceAt(move.to())->symbol())));
     }
+    if (move.kind() == domain::MoveKind::Castling) {
+        out_ << " (enroque)";
+    }
     out_ << '\n';
     render(state);
 }

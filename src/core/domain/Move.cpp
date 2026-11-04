@@ -4,6 +4,13 @@
 
 namespace chess::domain {
 
+Move Move::castling(Position kingFrom, Position kingTo, Position rookFrom, Position rookTo) {
+    Move move(kingFrom, kingTo, MoveKind::Castling);
+    move.rookFrom_ = rookFrom;
+    move.rookTo_ = rookTo;
+    return move;
+}
+
 Move Move::withPromotion(PieceTypeId type) const {
     Move copy = *this;
     copy.promotion_ = std::move(type);

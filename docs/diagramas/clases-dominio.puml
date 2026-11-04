@@ -75,15 +75,17 @@ package "chess::domain" {
       +from(): Position
       +to(): Position
       +kind(): MoveKind
+      +{static} castling(kingFrom: Position, kingTo: Position, rookFrom: Position, rookTo: Position): Move
       +promotion(): optional<PieceTypeId>
+      +rookFrom(): optional<Position>
+      +rookTo(): optional<Position>
       +withPromotion(PieceTypeId): Move
       +operator==(Move): bool
     }
     note bottom of Move
-      Fase 7 (opcional) agrega:
-      castling(from, to, rookFrom, rookTo),
+      Misión 7.4 agrega:
       enPassant(from, to, capturedSquare),
-      rookFrom(), rookTo(), capturedSquare().
+      capturedSquare().
     end note
 
     enum GameStatus {
@@ -178,9 +180,16 @@ package "chess::domain" {
       Vacía → Normal, enemiga → Capture,
       propia → se descarta.
     end note
-    class CastlingRule <<opcional>> {
-      +CastlingRule()
+    class CastlingRule {
+      +candidateMoves(ctx: const MoveContext&): vector<Move>
+      +attackedSquares(ctx: const MoveContext&): vector<Position>
     }
+    note bottom of CastlingRule
+      Solo geometría: rey y pieza canCastleWith
+      sin mover y casillas libres entre ellos.
+      El jaque lo mira LegalMoveFilter (D-07).
+      attackedSquares = {} (no captura).
+    end note
   }
 
   ' ===================== Tablero y estado =====================
@@ -243,13 +252,15 @@ package "chess::domain" {
     }
     note bottom of MoveApplier
       Con promotion() elegida crea la pieza
-      nueva con la PieceFactory.
-      Fase 7.3/7.4: enroque y al paso.
+      nueva con la PieceFactory. En el enroque
+      mueve también la torre. Misión 7.4: al paso.
     end note
 
     class LegalMoveFilter {
       +LegalMoveFilter(applier: const MoveApplier&, detector: const AttackDetector&)
       +filter(state: const GameState&, moves: vector<Move>): vector<Move>
+      -leavesOwnKingSafe(state: const GameState&, move: const Move&): bool
+      -kingPathIsSafe(state: const GameState&, castling: const Move&): bool
     }
 
     class GameStatusEvaluator {
@@ -272,6 +283,7 @@ BoardDimensions ..> Position : contains
 Move "1" *-- "2" Position
 Move "1" *-- "1" MoveKind
 Move "1" o-- "0..1" PieceTypeId : promotion
+Move "1" o-- "0..2" Position : rookFrom / rookTo
 
 ' Piezas
 PieceDefinition "1" *-- "1" PieceTypeId
@@ -323,6 +335,7 @@ AttackDetector ..> MovementRule : attackedSquares
 MoveApplier "1" --> "1" PieceFactory : promoción
 LegalMoveFilter "1" --> "1" MoveApplier
 LegalMoveFilter "1" --> "1" AttackDetector
+LegalMoveFilter ..> CastlingRule : "condición de jaque\ndel enroque (D-07)"
 GameStatusEvaluator "1" --> "1" AttackDetector
 GameStatusEvaluator "1" --> "1" MoveGenerator : allMoves
 GameStatusEvaluator "1" --> "1" LegalMoveFilter

@@ -190,6 +190,36 @@ TEST_F(ChessGameTest, InCheckOnlyMovesThatResolveItAreAccepted) {
     EXPECT_EQ(game.status(), GameStatus::InProgress);
 }
 
+// --- Enroque ---
+
+TEST_F(ChessGameTest, MovingTheKingTwoSquaresTowardsARookCastles) {
+    ChessGame game(rules_, GameState(builder()
+                                         .place("e1", kKing, Color::White)
+                                         .place("h1", kRook, Color::White)
+                                         .place("e8", kKing, Color::Black)
+                                         .build()));
+
+    const MoveResult result = move(game, "e1", "g1");
+
+    ASSERT_TRUE(result.ok());
+    EXPECT_EQ(result.move()->kind(), MoveKind::Castling);
+    EXPECT_EQ(game.state().board().pieceAt(sq("f1"))->type(), kRook);
+}
+
+TEST_F(ChessGameTest, AfterMovingTheKingCastlingIsNoLongerPossible) {
+    ChessGame game(rules_, GameState(builder()
+                                         .place("e1", kKing, Color::White)
+                                         .place("h1", kRook, Color::White)
+                                         .place("e8", kKing, Color::Black)
+                                         .build()));
+    move(game, "e1", "f1");
+    move(game, "e8", "e7");
+    move(game, "f1", "e1");
+    move(game, "e7", "e8");
+
+    EXPECT_EQ(move(game, "e1", "g1").error(), MoveError::IllegalMove);
+}
+
 // --- Promoción (D-08) ---
 
 namespace {
