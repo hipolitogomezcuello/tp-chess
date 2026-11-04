@@ -48,13 +48,15 @@ que sea testeable sin levantar nada. Con puertos explícitos, la UI es un detall
 | `chess_core` | librería estática | `src/core/**` | nada |
 | `chess_console_adapter` | librería estática | `src/adapters/console/**` | `chess_core` |
 | `chess_console` | ejecutable | `app/main_console.cpp` | `chess_console_adapter` |
-| `chess_raylib` | ejecutable | `src/adapters/raylib/**` + `app/main_raylib.cpp` | `chess_core`, raylib |
+| `chess_raylib_adapter` | librería estática | `src/adapters/raylib/**` | `chess_core` (PUBLIC), raylib (PRIVATE) |
+| `chess_raylib` | ejecutable | `app/main_raylib.cpp` | `chess_raylib_adapter` |
 | `chess_tests` | ejecutable de tests | `tests/core/**` | `chess_core`, GoogleTest |
 | `chess_console_tests` | ejecutable de tests | `tests/adapters/console/**` | `chess_console_adapter`, GoogleTest |
 
 El adaptador de consola es una librería aparte para poder testearlo (notación, dibujo y loop de
 comandos con streams en memoria) sin mezclar esos tests con los del núcleo: `chess_tests` sigue sin
-conocer ningún adaptador.
+conocer ningún adaptador. El de raylib sigue el mismo esquema; raylib se descarga con `FetchContent`
+(5.5) y se puede apagar con `-DCHESS_BUILD_RAYLIB=OFF` si no hay internet o no se necesita la UI gráfica.
 
 ---
 

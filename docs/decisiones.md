@@ -282,5 +282,18 @@ estructuras persistentes. También si `apply` dejara de ser determinista (azar, 
 tendría que guardar el estado resultante.
 **Dónde en el código:** `application/MoveCommand`, `application/MoveHistory`, `ChessGame::undo/redo`.
 
-<!-- Próximas decisiones (las completan los agentes cuando las implementen):
-     raylib como UI gráfica (frente a SFML o Qt) -->
+## D-21 — raylib como UI gráfica
+**Estado:** vigente
+**Qué:** la segunda UI usa raylib 5.5, descargada con `FetchContent` y compilada como dependencia
+PRIVATE de la librería `chess_raylib_adapter`. Las piezas se dibujan con su `symbol()` dentro de un
+círculo: no hay imágenes ni otros archivos.
+**Por qué:** raylib es una sola librería en C, sin dependencias, que compila con CMake igual en MSVC,
+MinGW, gcc y clang (D-12), y su API inmediata (dibujar cada cuadro) alcanza para un tablero. Se
+descartaron SFML (más pesada de compilar y con dependencias de sistema en Linux) y Qt (un framework
+entero, con su propio build y su modelo de señales). Dibujar el símbolo hace que una pieza nueva
+aparezca sin cambios en la UI, igual que en la consola. Que raylib sea PRIVATE hace que ni el núcleo
+ni los headers del adaptador la vean: el compilador hace cumplir la regla de dependencias.
+**Cuándo se rompería:** si la UI necesitara widgets de verdad (menús, diálogos, texto con tildes en
+otra fuente), raylib obliga a dibujarlos a mano y conviene un toolkit de interfaz. También sin
+internet en la primera configuración (se apaga con `CHESS_BUILD_RAYLIB=OFF`).
+**Dónde en el código:** `src/adapters/raylib/CMakeLists.txt`, `CMakeLists.txt`, `app/CMakeLists.txt`.

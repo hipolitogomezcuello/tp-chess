@@ -4,4 +4,8 @@
 add_executable(chess_console main_console.cpp)
 target_link_libraries(chess_console PRIVATE chess_console_adapter chess_warnings)
 
-# chess_raylib se agrega en la fase 8.
+# chess_raylib — UI gráfica. El adaptador vive en src/adapters/raylib (chess_raylib_adapter).
+if(CHESS_BUILD_RAYLIB)
+    add_executable(chess_raylib main_raylib.cpp)
+    target_link_libraries(chess_raylib PRIVATE chess_raylib_adapter chess_warnings)
+endif()

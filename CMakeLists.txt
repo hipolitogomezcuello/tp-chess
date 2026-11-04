@@ -11,6 +11,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 option(CHESS_BUILD_TESTS "Compilar los tests unitarios del núcleo" ON)
+# La UI gráfica descarga raylib en la primera configuración; se puede apagar si no hay internet.
+option(CHESS_BUILD_RAYLIB "Compilar la UI gráfica con raylib" ON)
 
 # Warnings altos solo para nuestros targets (no para GoogleTest ni raylib).
 # Se enlaza como dependencia PRIVATE de cada target propio.
@@ -24,6 +26,9 @@ endif()
 
 add_subdirectory(src/core)
 add_subdirectory(src/adapters/console)
+if(CHESS_BUILD_RAYLIB)
+    add_subdirectory(src/adapters/raylib)
+endif()
 add_subdirectory(app)
 
 if(CHESS_BUILD_TESTS)
