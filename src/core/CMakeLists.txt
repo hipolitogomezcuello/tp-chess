@@ -17,6 +17,7 @@ target_sources(chess_core PRIVATE
     domain/SlidingRule.cpp
     domain/LeaperRule.cpp
     domain/RuleHelpers.cpp
+    domain/PawnRule.cpp
 )
 
 # Los includes se escriben desde src/core: #include "domain/Position.hpp"
