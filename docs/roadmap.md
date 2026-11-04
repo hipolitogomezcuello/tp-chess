@@ -74,8 +74,12 @@ Leyenda: `[ ]` pendiente · `[~]` en curso · `[x]` hecha
 
 - [x] **6.1** `AlgebraicNotation`, `ConsoleRenderer` (observer) y `ConsoleUI`.
 - [x] **6.2** `app/main_console.cpp` (composition root).
-- [ ] **6.3** Verificación manual: jugar una partida corta, intentar jugadas ilegales y provocar un jaque.
+- [x] **6.3** Verificación manual: jugar una partida corta, intentar jugadas ilegales y provocar un jaque.
   - Al completar esta fase **se cumple todo el alcance obligatorio** de la consigna.
+  - Hecha con `1. e4 f6 2. Dh5+ g6 3. Dxg6+ hxg6`: se rechazaron una jugada ilegal (`e2 e5`), una fuera
+    de turno (`e7 e5`), una desde una casilla vacía, una casilla inexistente (`z9`), un comando
+    desconocido y `a7 a6` estando en jaque; se anunciaron los dos jaques y la captura (`h5xg6`).
+    Pendiente para la fase 7: el mate (p. ej. el del loco) todavía no termina la partida.
 
 ## Fase 7 — Opcionales
 
