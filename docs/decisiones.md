@@ -163,6 +163,10 @@ saltea el orden del roadmap y deja funcionalidad opcional sin su UI.
 **Cuándo se rompería:** si cambiar esas firmas en la fase 7 obligara a tocar muchos clientes. Hoy el único
 cliente de `RulesEngine` es el composition root (y `ChessGame`, que lo recibe armado), así que el costo es
 una línea.
+**Cómo resultó (fase 7):** las tres firmas crecieron como estaba previsto (`MoveApplier(factory)`,
+`RulesEngine(registry)`, `GameStatusEvaluator(detector, generator, filter)`) y lo mismo los puertos
+(`promotion`, `undo`/`redo`, `onGameOver`, `onUndoRedo`). Los clientes de producción a tocar fueron el
+composition root y `ChessGame`; el resto fueron fixtures de tests, que cambiaron una línea cada uno.
 **Dónde en el código:** `MoveApplier`, `RulesEngine`, `GameStatusEvaluator`.
 
 ## D-14 — El turno lo valida la aplicación; el filtro usa el color de la pieza

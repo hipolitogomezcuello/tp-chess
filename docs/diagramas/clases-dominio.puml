@@ -1,17 +1,12 @@
 @startuml clases-dominio
-' Diagrama de clases del dominio (misión 1.2).
-' Nombres idénticos al código (en inglés); notas en español.
-' Elementos marcados <<opcional>> pertenecen a la fase 7 (alcance opcional de la consigna).
+' Diagrama de clases del dominio (misión 1.2, actualizado en la 7.7).
+' Nombres idénticos al código (en inglés); notas en español. Todo lo que aparece está implementado.
 title Dominio (chess::domain) — piezas, reglas, tablero y motor
 
 set separator none
 skinparam shadowing false
 skinparam classAttributeIconSize 0
 hide empty members
-skinparam class {
-  BackgroundColor<<opcional>> #F5F5F5
-  BorderColor<<opcional>> #9E9E9E
-}
 
 package "chess::domain" {
 
@@ -173,8 +168,15 @@ package "chess::domain" {
       +LeaperRule(offsets: vector<Offset>)
     }
     class PawnRule {
-      +PawnRule()
+      +candidateMoves(ctx: const MoveContext&): vector<Move>
+      +attackedSquares(ctx: const MoveContext&): vector<Position>
     }
+    note bottom of PawnRule
+      Avance simple/doble (hasMoved), captura
+      diagonal, al paso (enPassantTarget) y
+      Promotion al llegar a la última fila real.
+      No elige la pieza de promoción (D-08).
+    end note
     class RuleHelpers <<utility>> {
       +{static} movesOntoReachableSquares(ctx: const MoveContext&, squares: vector<Position>): vector<Move>
     }

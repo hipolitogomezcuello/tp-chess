@@ -1,5 +1,5 @@
 @startuml clases-aplicacion
-' Diagrama de clases de aplicación, puertos y adaptadores (misión 1.3).
+' Diagrama de clases de aplicación, puertos y adaptadores (misión 1.3, actualizado en la 7.7).
 ' Elementos marcados <<opcional>> pertenecen a la fase 8 (RaylibUI).
 title Aplicación, puertos y adaptadores
 

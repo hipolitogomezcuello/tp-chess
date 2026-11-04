@@ -93,7 +93,10 @@ Leyenda: `[ ]` pendiente · `[~]` en curso · `[x]` hecha
 - [x] **7.6** Tests de extensibilidad: una pieza inventada y un tablero de 10×10.
   - `tests/core/extensibility/`: Arzobispo y Canciller registrados desde afuera y una partida de 10×10,
     más un test de consola que promueve al Arzobispo con `c7 c8 a`. No se modificó ningún archivo de `src/`.
-- [ ] **7.7** Actualizar todos los diagramas y `decisiones.md`.
+- [x] **7.7** Actualizar todos los diagramas y `decisiones.md`.
+  - Cada misión 7.x actualizó su parte del UML en su commit; la 7.7 repasó todos: ya no queda nada
+    marcado `<<opcional>>` salvo `RaylibUI` (fase 8). Decisiones nuevas: D-18 (State), D-19 (piezas de
+    promoción en el puerto) y D-20 (Command + Memento).
 
 ## Fase 8 — Adaptador raylib
 

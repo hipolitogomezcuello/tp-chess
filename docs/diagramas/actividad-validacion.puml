@@ -1,20 +1,23 @@
 @startuml actividad-validacion
-' Diagrama de actividad: pipeline de validación de un movimiento (misión 1.5).
+' Diagrama de actividad: pipeline de validación de un movimiento (misión 1.5, actualizado en la 7.7).
 title Validación de una jugada — candidatos → pseudo-legales → legales → estado
 
 skinparam shadowing false
 
 legend top right
-  Implementado (fases 3 y 4): pasos 1 a 3 y, en el 4,
-  solo Check / InProgress.
-  Fase 7 (opcional): condición de jaque del enroque,
-  bloque de promoción, Checkmate y Stalemate.
-  Los chequeos de origen y turno los hace ChessGame (fase 5).
+  Implementado completo (fases 3 a 7).
+  Los chequeos de fase, origen, turno y promoción
+  los hace ChessGame (aplicación); los pasos 1 a 4,
+  el RulesEngine (dominio).
 endlegend
 
 start
 :Llega makeMove(from, to, promotion);
 
+if (¿la fase actual es GameOverPhase?) then (sí)
+  :MoveResult::failure(GameOver);
+  stop
+endif
 if (¿hay una pieza en from?) then (no)
   :MoveResult::failure(NoPieceAtOrigin);
   stop
@@ -40,14 +43,16 @@ partition "2. Pseudo-legales (MoveGenerator)" {
 
 partition "3. Filtro de jaque (LegalMoveFilter)" {
   while (¿quedan movimientos pseudo-legales?) is (sí)
-    :copia = MoveApplier.apply(state, move)
-    (no muta el estado original);
-    if (AttackDetector.isInCheck(copia, color propio)?) then (sí)
-      :descartar;
-    elseif (¿es Castling y el rey está en jaque\no atraviesa una casilla atacada?) then (sí)
+    if (¿es Castling y el rey está en jaque\no cruza una casilla atacada? (D-07)) then (sí)
       :descartar;
     else (no)
-      :conservar como legal;
+      :copia = MoveApplier.apply(state, move)
+      (no muta el estado original);
+      if (AttackDetector.isInCheck(copia, color de la pieza)?) then (sí)
+        :descartar;
+      else (no)
+        :conservar como legal;
+      endif
     endif
   endwhile (no)
 }
@@ -58,14 +63,26 @@ if (¿algún Move legal va a "to"?) then (no)
 endif
 
 if (¿el Move es Promotion?) then (sí)
-  if (¿vino promotion y canPromoteTo(promotion)?) then (no)
+  if (¿vino promotion?) then (no)
     :MoveResult::failure(PromotionRequired);
     stop
   endif
+  if (¿canPromoteTo(promotion)?\n(trait isPromotable, D-08)) then (no)
+    :MoveResult::failure(InvalidPromotion);
+    stop
+  endif
   :move = move.withPromotion(promotion);
+else (no)
+  if (¿vino promotion?) then (sí)
+    :MoveResult::failure(InvalidPromotion);
+    stop
+  endif
 endif
 
-:newState = RulesEngine.apply(state, move);
+:MoveCommand(rules, move).execute(state)
+(guarda el Memento y aplica: enroque mueve la torre,
+al paso saca al peón, la promoción crea la pieza);
+:MoveHistory.record(command);
 
 partition "4. Evaluación de estado (GameStatusEvaluator)" {
   :enJaque = AttackDetector.isInCheck(newState, newState.sideToMove());
@@ -86,6 +103,8 @@ partition "4. Evaluación de estado (GameStatusEvaluator)" {
   endif
 }
 
-:Notificar observers y devolver MoveResult::success(move);
+:updatePhase() (Checkmate/Stalemate → GameOverPhase);
+:Notificar observers (onMoveMade + onCheck u onGameOver)
+y devolver MoveResult::success(move);
 stop
 @enduml

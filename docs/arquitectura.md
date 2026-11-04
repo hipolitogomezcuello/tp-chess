@@ -207,12 +207,13 @@ candidatos (MovementRules) → pseudo-legales (MoveGenerator) → legales (Legal
   (generador, filtro, detector).
 
 ### 3.7 State — estado de la partida
-- **Dónde:** `GamePhase` (interfaz, `tryMove(game, from, to)`; desde la 7.2 también `promotion`) con `InProgressPhase`
+- **Dónde:** `GamePhase` (interfaz, `tryMove(game, from, to, promotion)`) con `InProgressPhase`
   (delega en `ChessGame::performMove`) y `GameOverPhase` (rechaza con `MoveError::GameOver`) dentro
   de `ChessGame`. La fase no se guarda en el historial: se deriva del `GameStatus` después de cada
   jugada, undo o redo, así deshacer un mate vuelve a `InProgressPhase` sin casos especiales.
 - **Por qué:** el comportamiento cambia según el estado: en `GameOverPhase`, `makeMove` se rechaza
   sin llenar `ChessGame` de `if (terminado)`. Las transiciones quedan explícitas (diagrama de estados).
+  Ver D-18.
 
 ### 3.8 Command + Memento — deshacer/rehacer
 - **Dónde:** `MoveCommand` (`execute`/`undo`) y `MoveHistory` (pilas undo/redo) en `application/`.
