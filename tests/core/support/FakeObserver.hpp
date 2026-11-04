@@ -1,0 +1,28 @@
+#pragma once
+
+// Observer de prueba: registra los eventos que recibe para que los tests los inspeccionen
+// (docs/arquitectura.md §8). No dibuja nada: reemplaza a la UI en los tests del núcleo.
+#include <vector>
+
+#include "domain/Color.hpp"
+#include "domain/GameState.hpp"
+#include "domain/Move.hpp"
+#include "ports/GameObserver.hpp"
+
+namespace chess::testing {
+
+class FakeObserver : public ports::GameObserver {
+public:
+    void onMoveMade(const domain::Move& move, const domain::GameState& state) override {
+        movesMade.push_back(move);
+        statesAfterMove.push_back(state);
+    }
+
+    void onCheck(domain::Color colorInCheck) override { checks.push_back(colorInCheck); }
+
+    std::vector<domain::Move> movesMade;
+    std::vector<domain::GameState> statesAfterMove;
+    std::vector<domain::Color> checks;
+};
+
+}  // namespace chess::testing

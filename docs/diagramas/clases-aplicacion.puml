@@ -56,18 +56,19 @@ package "chess::ports" {
 package "chess::application" {
   class ChessGame {
     +ChessGame(rules: const RulesEngine&, initialState: GameState)
-    +performMove(from: Position, to: Position, promotion: optional<PieceTypeId>): MoveResult
     -- GameService --
-    +makeMove(...): MoveResult
+    +makeMove(from: Position, to: Position): MoveResult
     +legalMovesFrom(from: Position): vector<Move>
     +state(): const GameState&
     +status(): GameStatus
-    +undo(): bool
-    +redo(): bool
     +addObserver(observer: GameObserver&): void
     -- privados --
-    -updatePhase(): void
+    -hasPieceOfSideToMove(from: Position): bool
     -notifyAfterMove(move: const Move&): void
+    .. fase 7 ..
+    +performMove(from, to, promotion): MoveResult «7.1»
+    +undo(), redo(): bool «7.5»
+    -updatePhase(): void «7.1»
   }
 
   interface GamePhase <<State>> <<opcional>> {
@@ -139,8 +140,8 @@ GameService ..> GameObserver : addObserver
 
 ChessGame "1" --> "1" RulesEngine : usa
 ChessGame "1" *-- "1" GameState : estado actual
-ChessGame "1" *-- "1" MoveHistory
-ChessGame "1" *-- "1" GamePhase : fase actual
+ChessGame "1" *-- "1" MoveHistory : «7.5»
+ChessGame "1" *-- "1" GamePhase : fase actual «7.1»
 ChessGame "1" o-- "0..*" GameObserver : notifica
 GamePhase <|.. InProgressPhase
 GamePhase <|.. GameOverPhase

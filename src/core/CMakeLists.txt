@@ -26,6 +26,7 @@ target_sources(chess_core PRIVATE
     domain/LegalMoveFilter.cpp
     domain/GameStatusEvaluator.cpp
     domain/RulesEngine.cpp
+    application/ChessGame.cpp
 )
 
 # Los includes se escriben desde src/core: #include "domain/Position.hpp"
