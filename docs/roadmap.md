@@ -53,7 +53,7 @@ Leyenda: `[ ]` pendiente · `[~]` en curso · `[x]` hecha
 - [x] **3.3** `Board` y el helper de tests `BoardBuilder`.
 - [x] **3.4** `MovementRule`, `MoveContext`, `Move`, más `SlidingRule` y `LeaperRule` con tests (vacío, bloqueo, captura, borde).
 - [x] **3.5** `PawnRule` sin al paso ni promoción: avance simple y doble, y captura diagonal.
-- [ ] **3.6** `StandardPieces` y `StandardStartingPosition`. Test: la posición inicial tiene 32 piezas bien ubicadas.
+- [x] **3.6** `StandardPieces` y `StandardStartingPosition`. Test: la posición inicial tiene 32 piezas bien ubicadas.
 - [ ] **3.7** Actualizar `clases-dominio.puml` según lo implementado.
 
 ## Fase 4 — Reglas: legalidad y jaque
