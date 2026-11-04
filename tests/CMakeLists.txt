@@ -15,7 +15,10 @@ FetchContent_MakeAvailable(googletest)
 
 # Un archivo de test por clase, espejando src/core (tests/core/domain/SlidingRuleTest.cpp).
 add_executable(chess_tests
-    core/SmokeTest.cpp
+    core/domain/ColorTest.cpp
+    core/domain/OffsetTest.cpp
+    core/domain/PositionTest.cpp
+    core/domain/BoardDimensionsTest.cpp
 )
 target_link_libraries(chess_tests PRIVATE chess_core chess_warnings GTest::gtest_main)
 

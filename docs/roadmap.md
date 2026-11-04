@@ -47,7 +47,7 @@ Leyenda: `[ ]` pendiente · `[~]` en curso · `[x]` hecha
 
 ## Fase 3 — Dominio base (TDD)
 
-- [ ] **3.1** `Color`, `Position`, `Offset`, `BoardDimensions`, más sus tests.
+- [x] **3.1** `Color`, `Position`, `Offset`, `BoardDimensions`, más sus tests.
   - Al agregar el primer `.cpp`, pasar `chess_core` de `INTERFACE` a `STATIC` (ver comentario en `src/core/CMakeLists.txt`) y borrar `tests/core/SmokeTest.cpp`.
 - [ ] **3.2** `PieceTypeId`, `PieceTraits`, `PieceDefinition`, `Piece`, `PieceRegistry`, `PieceFactory`.
 - [ ] **3.3** `Board` y el helper de tests `BoardBuilder`.

@@ -36,6 +36,7 @@ package "chess::domain" {
       +Offset(dFile: int, dRank: int)
       +dFile(): int
       +dRank(): int
+      +operator==(Offset): bool
     }
 
     class Directions <<utility>> {
@@ -50,6 +51,7 @@ package "chess::domain" {
       +files(): int
       +ranks(): int
       +contains(Position): bool
+      +operator==(BoardDimensions): bool
     }
 
     class PieceTypeId <<ValueObject>> {
