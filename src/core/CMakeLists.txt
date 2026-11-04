@@ -23,6 +23,7 @@ target_sources(chess_core PRIVATE
     domain/MoveGenerator.cpp
     domain/MoveApplier.cpp
     domain/AttackDetector.cpp
+    domain/LegalMoveFilter.cpp
 )
 
 # Los includes se escriben desde src/core: #include "domain/Position.hpp"
