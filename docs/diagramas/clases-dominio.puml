@@ -1,0 +1,346 @@
+@startuml clases-dominio
+' Diagrama de clases del dominio (misión 1.2).
+' Nombres idénticos al código (en inglés); notas en español.
+' Elementos marcados <<opcional>> pertenecen a la fase 7 (alcance opcional de la consigna).
+title Dominio (chess::domain) — piezas, reglas, tablero y motor
+
+set separator none
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+hide empty members
+skinparam class {
+  BackgroundColor<<opcional>> #F5F5F5
+  BorderColor<<opcional>> #9E9E9E
+}
+
+package "chess::domain" {
+
+  ' ===================== Value objects =====================
+  package "Value objects" {
+    enum Color {
+      White
+      Black
+    }
+    note right of Color : función libre\nopposite(Color): Color
+
+    class Position <<ValueObject>> {
+      +Position(file: int, rank: int)
+      +file(): int
+      +rank(): int
+      +operator+(Offset): Position
+      +operator==(Position): bool
+      +operator<(Position): bool
+    }
+
+    class Offset <<ValueObject>> {
+      +Offset(dFile: int, dRank: int)
+      +dFile(): int
+      +dRank(): int
+    }
+
+    class Directions <<utility>> {
+      +{static} orthogonals(): vector<Offset>
+      +{static} diagonals(): vector<Offset>
+      +{static} all(): vector<Offset>
+      +{static} knightJumps(): vector<Offset>
+    }
+
+    class BoardDimensions <<ValueObject>> {
+      +BoardDimensions(files: int = 8, ranks: int = 8)
+      +files(): int
+      +ranks(): int
+      +contains(Position): bool
+    }
+
+    class PieceTypeId <<ValueObject>> {
+      +PieceTypeId(value: string)
+      +value(): const string&
+      +operator==(PieceTypeId): bool
+      +operator<(PieceTypeId): bool
+    }
+
+    enum MoveKind {
+      Normal
+      Capture
+      DoublePawnPush
+      EnPassant
+      Castling
+      Promotion
+    }
+
+    class Move <<ValueObject>> {
+      +Move(from: Position, to: Position, kind: MoveKind = Normal)
+      +{static} castling(from, to, rookFrom, rookTo): Move
+      +{static} enPassant(from, to, capturedSquare): Move
+      +from(): Position
+      +to(): Position
+      +kind(): MoveKind
+      +promotion(): optional<PieceTypeId>
+      +withPromotion(PieceTypeId): Move
+      +rookFrom(): optional<Position>
+      +rookTo(): optional<Position>
+      +capturedSquare(): optional<Position>
+      +operator==(Move): bool
+    }
+
+    enum GameStatus {
+      InProgress
+      Check
+      Checkmate
+      Stalemate
+    }
+  }
+
+  ' ===================== Piezas (composición) =====================
+  package "Piezas" {
+    class PieceTraits <<struct>> {
+      +isRoyal: bool = false
+      +canCastleWith: bool = false
+      +isPromotable: bool = false
+    }
+
+    class PieceDefinition {
+      +PieceDefinition(id: PieceTypeId, symbol: char, rules: vector<unique_ptr<MovementRule>>, traits: PieceTraits)
+      +id(): const PieceTypeId&
+      +symbol(): char
+      +rules(): const vector<unique_ptr<MovementRule>>&
+      +traits(): const PieceTraits&
+    }
+
+    class Piece <<ValueObject>> {
+      +Piece(definition: shared_ptr<const PieceDefinition>, color: Color, hasMoved: bool = false)
+      +type(): const PieceTypeId&
+      +color(): Color
+      +symbol(): char
+      +traits(): const PieceTraits&
+      +definition(): const PieceDefinition&
+      +hasMoved(): bool
+      +withMoved(): Piece
+    }
+
+    class PieceRegistry <<Registry>> {
+      +add(definition: shared_ptr<const PieceDefinition>): void
+      +find(id: PieceTypeId): shared_ptr<const PieceDefinition>
+      +contains(id: PieceTypeId): bool
+      +promotableTypes(): vector<PieceTypeId>
+    }
+
+    class PieceFactory <<Factory>> {
+      +PieceFactory(registry: const PieceRegistry&)
+      +create(id: PieceTypeId, color: Color): Piece
+    }
+
+    class StandardPieces <<utility>> {
+      +{static} kPawn: PieceTypeId
+      +{static} kRook: PieceTypeId
+      +{static} kKnight: PieceTypeId
+      +{static} kBishop: PieceTypeId
+      +{static} kQueen: PieceTypeId
+      +{static} kKing: PieceTypeId
+      +{static} registerAll(registry: PieceRegistry&): void
+    }
+  }
+
+  ' ===================== Reglas de movimiento (Strategy) =====================
+  package "Reglas de movimiento" {
+    interface MovementRule <<Strategy>> {
+      +{abstract} candidateMoves(ctx: const MoveContext&): vector<Move>
+      +{abstract} attackedSquares(ctx: const MoveContext&): vector<Position>
+      +~MovementRule()
+    }
+
+    class MoveContext {
+      +MoveContext(state: const GameState&, from: Position)
+      +state(): const GameState&
+      +board(): const Board&
+      +from(): Position
+      +piece(): const Piece&
+    }
+
+    class SlidingRule {
+      +SlidingRule(directions: vector<Offset>)
+    }
+    class LeaperRule {
+      +LeaperRule(offsets: vector<Offset>)
+    }
+    class PawnRule {
+      +PawnRule()
+    }
+    class CastlingRule <<opcional>> {
+      +CastlingRule()
+    }
+  }
+
+  ' ===================== Tablero y estado =====================
+  package "Tablero y estado" {
+    class Board {
+      +Board(dimensions: BoardDimensions)
+      +dimensions(): const BoardDimensions&
+      +pieceAt(Position): optional<Piece>
+      +isEmpty(Position): bool
+      +place(Position, Piece): void
+      +remove(Position): void
+      +move(from: Position, to: Position): void
+      +positionsOf(Color): vector<Position>
+    }
+
+    interface StartingPositionProvider <<Strategy>> {
+      +{abstract} createInitialBoard(factory: const PieceFactory&): Board
+      +~StartingPositionProvider()
+    }
+    class StandardStartingPosition
+
+    class GameState <<Memento>> {
+      +GameState(board: Board, sideToMove: Color = White, enPassantTarget: optional<Position> = nullopt)
+      +board(): const Board&
+      +sideToMove(): Color
+      +enPassantTarget(): optional<Position>
+    }
+  }
+
+  ' ===================== Motor de reglas =====================
+  package "Motor de reglas" {
+    class RulesEngine <<Facade>> {
+      +RulesEngine(registry: const PieceRegistry&)
+      +legalMoves(state: const GameState&, from: Position): vector<Move>
+      +apply(state: const GameState&, move: const Move&): GameState
+      +status(state: const GameState&): GameStatus
+      +canPromoteTo(id: PieceTypeId): bool
+    }
+
+    class MoveGenerator {
+      +movesFrom(state: const GameState&, from: Position): vector<Move>
+      +allMoves(state: const GameState&): vector<Move>
+    }
+
+    class AttackDetector {
+      +isSquareAttacked(state: const GameState&, square: Position, byColor: Color): bool
+      +isInCheck(state: const GameState&, color: Color): bool
+    }
+
+    class MoveApplier {
+      +MoveApplier(factory: const PieceFactory&)
+      +apply(state: const GameState&, move: const Move&): GameState
+    }
+
+    class LegalMoveFilter {
+      +LegalMoveFilter(applier: const MoveApplier&, detector: const AttackDetector&)
+      +filter(state: const GameState&, moves: vector<Move>): vector<Move>
+    }
+
+    class GameStatusEvaluator {
+      +GameStatusEvaluator(generator: const MoveGenerator&, filter: const LegalMoveFilter&, detector: const AttackDetector&)
+      +evaluate(state: const GameState&): GameStatus
+    }
+  }
+}
+
+' ===================== Relaciones =====================
+' Value objects
+Position ..> Offset : se suma a
+Directions ..> Offset : crea
+BoardDimensions ..> Position : contains
+Move "1" *-- "2..4" Position
+Move "1" *-- "1" MoveKind
+Move "1" o-- "0..1" PieceTypeId : promotion
+
+' Piezas
+PieceDefinition "1" *-- "1" PieceTypeId
+PieceDefinition "1" *-- "1" PieceTraits
+PieceDefinition "1" *-- "1..*" MovementRule : rules
+Piece "0..*" --> "1" PieceDefinition : comparte (shared_ptr)
+Piece "1" *-- "1" Color
+PieceRegistry "1" o-- "0..*" PieceDefinition
+PieceFactory "1" --> "1" PieceRegistry : consulta
+PieceFactory ..> Piece : crea
+StandardPieces ..> PieceRegistry : registra
+StandardPieces ..> SlidingRule : compone
+StandardPieces ..> LeaperRule : compone
+StandardPieces ..> PawnRule : compone
+StandardPieces ..> CastlingRule : compone
+StandardPieces ..> Directions
+
+' Strategy
+MovementRule <|.. SlidingRule
+MovementRule <|.. LeaperRule
+MovementRule <|.. PawnRule
+MovementRule <|.. CastlingRule
+MovementRule ..> MoveContext : lee
+MovementRule ..> Move : genera
+MoveContext "1" --> "1" GameState
+
+' Tablero y estado
+Board "1" *-- "1" BoardDimensions
+Board "1" *-- "0..*" Piece : casillas (optional<Piece>)
+GameState "1" *-- "1" Board
+GameState "1" *-- "1" Color : sideToMove
+StartingPositionProvider <|.. StandardStartingPosition
+StartingPositionProvider ..> PieceFactory : usa
+StartingPositionProvider ..> Board : crea
+
+' Motor
+RulesEngine "1" *-- "1" PieceFactory
+RulesEngine "1" *-- "1" MoveGenerator
+RulesEngine "1" *-- "1" AttackDetector
+RulesEngine "1" *-- "1" MoveApplier
+RulesEngine "1" *-- "1" LegalMoveFilter
+RulesEngine "1" *-- "1" GameStatusEvaluator
+RulesEngine ..> GameStatus
+MoveGenerator ..> MovementRule : recorre las reglas de la pieza
+AttackDetector ..> MovementRule : attackedSquares
+MoveApplier "1" --> "1" PieceFactory : promoción
+LegalMoveFilter "1" --> "1" MoveApplier
+LegalMoveFilter "1" --> "1" AttackDetector
+GameStatusEvaluator "1" --> "1" MoveGenerator
+GameStatusEvaluator "1" --> "1" LegalMoveFilter
+GameStatusEvaluator "1" --> "1" AttackDetector
+
+' ===================== Notas de patrones =====================
+note top of MovementRule
+  **Strategy** (arquitectura §3.2)
+  Cada forma de moverse es un algoritmo
+  intercambiable. La Reina = SlidingRule(all).
+  attackedSquares ≠ candidateMoves: el peón
+  ataca en diagonal pero avanza recto.
+end note
+
+note bottom of PieceDefinition
+  **Composición sobre herencia** (§3.3)
+  No existen Rook, Knight… como subclases.
+  Una pieza = id + símbolo + reglas + traits.
+  Agregar el Arzobispo = registrar
+  {SlidingRule(diagonals), LeaperRule(knightJumps)}.
+end note
+
+note right of PieceRegistry
+  **Factory + Registry** (§3.4)
+  PieceTypeId es abierto (string):
+  agregar un tipo = add(), sin switch.
+end note
+
+note bottom of StartingPositionProvider
+  **Strategy** (§3.5)
+  Tablero 10×10 o Chess960 = otra
+  implementación. Board y el motor
+  solo usan BoardDimensions.
+end note
+
+note top of RulesEngine
+  **Facade** (§3.6)
+  La aplicación solo ve legalMoves / apply / status.
+  Pipeline interno: MoveGenerator → LegalMoveFilter
+  (MoveApplier + AttackDetector) → GameStatusEvaluator.
+end note
+
+note bottom of AttackDetector
+  isInCheck busca la pieza con
+  traits.isRoyal, no "el rey".
+end note
+
+note bottom of GameState
+  Value object copiable: sirve de
+  **Memento** para deshacer (§3.8).
+  Los derechos de enroque se derivan
+  de Piece::hasMoved (ver D-06).
+end note
+@enduml

@@ -13,28 +13,28 @@ Leyenda: `[ ]` pendiente · `[~]` en curso · `[x]` hecha
 
 - [x] **0.1** CLAUDE.md, arquitectura, roadmap, plantilla de decisiones y estructura de carpetas.
 
-## Fase 1 — Diseño (⚠️ SIN CÓDIGO)
+## Fase 1 — Diseño (⚠️ SIN CÓDIGO) ✅
 
 > Los agentes de esta fase **no escriben C++**. Producen diagramas PlantUML en `docs/diagramas/`
 > y, si el diseño cambia, actualizan `docs/arquitectura.md`. El objetivo es pensar el diseño antes
 > de implementarlo y tener el UML desde el día uno.
 
-- [ ] **1.1 Diagrama de componentes / hexagonal** → `docs/diagramas/componentes.puml`
+- [x] **1.1 Diagrama de componentes / hexagonal** → `docs/diagramas/componentes.puml`
   - Paquetes `domain`, `application`, `ports`, `adapters.console`, `adapters.raylib` y `app`, con las flechas de dependencia.
   - Terminado si: se ve claramente que ninguna flecha sale del núcleo hacia los adaptadores.
-- [ ] **1.2 Diagrama de clases del dominio** → `docs/diagramas/clases-dominio.puml`
+- [x] **1.2 Diagrama de clases del dominio** → `docs/diagramas/clases-dominio.puml`
   - Value objects, `PieceDefinition`/`Piece`, jerarquía de `MovementRule`, registro/fábrica, `Board`, `GameState` y el motor de reglas.
   - Notas UML que indiquen el patrón aplicado (`<<Strategy>>`, `<<Factory>>`, `<<Facade>>`…).
   - Terminado si: cada clase de `arquitectura.md` §2 aparece con sus métodos públicos y la multiplicidad de sus relaciones.
-- [ ] **1.3 Diagrama de clases de aplicación y puertos** → `docs/diagramas/clases-aplicacion.puml`
+- [x] **1.3 Diagrama de clases de aplicación y puertos** → `docs/diagramas/clases-aplicacion.puml`
   - `GameService`, `GameObserver`, `ChessGame`, `MoveCommand`, `MoveHistory`, `GamePhase`…, más los adaptadores como clientes.
-- [ ] **1.4 Diagrama de secuencia: hacer una jugada** → `docs/diagramas/secuencia-jugada.puml`
+- [x] **1.4 Diagrama de secuencia: hacer una jugada** → `docs/diagramas/secuencia-jugada.puml`
   - Desde `ConsoleUI` hasta la notificación a los observers, con los dos caminos: jugada válida y jugada inválida.
-- [ ] **1.5 Diagrama de actividad: validación de movimiento** → `docs/diagramas/actividad-validacion.puml`
+- [x] **1.5 Diagrama de actividad: validación de movimiento** → `docs/diagramas/actividad-validacion.puml`
   - Pipeline: candidatos → pseudo-legales → filtro de jaque → evaluación de estado (jaque, mate, ahogado).
-- [ ] **1.6 Diagrama de estados de la partida** → `docs/diagramas/estados-partida.puml`
+- [x] **1.6 Diagrama de estados de la partida** → `docs/diagramas/estados-partida.puml`
   - `InProgress` ⇄ `Check` → `Checkmate` / `Stalemate`, y cómo afecta deshacer.
-- [ ] **1.7 Revisión de diseño**
+- [x] **1.7 Revisión de diseño**
   - Recorrer los diagramas preguntando: ¿se puede agregar una pieza nueva sin modificar ninguna clase?
     ¿Y un tablero de 10×10? Si no, corregir el diseño. Registrar las decisiones en `docs/decisiones.md`.
 

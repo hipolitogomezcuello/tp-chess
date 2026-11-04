@@ -1,0 +1,50 @@
+@startuml estados-partida
+' Diagrama de estados de la partida (misión 1.6).
+' Dos niveles: GameStatus (lo que calcula el dominio) y GamePhase (State en ChessGame).
+title Estados de la partida
+
+skinparam shadowing false
+hide empty description
+
+[*] --> InProgressPhase : ChessGame(rules, estadoInicial)
+
+state "InProgressPhase\n(acepta jugadas)" as InProgressPhase {
+  [*] --> InProgress
+  InProgress : nadie está en jaque
+  Check : el bando que mueve está en jaque\n→ observers.onCheck(color)
+
+  InProgress --> Check : jugada legal / status == Check
+  Check --> InProgress : jugada legal / status == InProgress
+  InProgress --> InProgress : jugada legal / status == InProgress
+  Check --> Check : jugada legal / status == Check
+}
+
+state "GameOverPhase\n(rechaza jugadas: MoveError::GameOver)" as GameOverPhase {
+  Checkmate : en jaque y sin jugadas legales
+  Stalemate : sin jaque y sin jugadas legales\n(tablas por ahogado)
+}
+
+InProgressPhase --> Checkmate : jugada legal o redo() / status == Checkmate\n→ onGameOver(Checkmate)
+InProgressPhase --> Stalemate : jugada legal o redo() / status == Stalemate\n→ onGameOver(Stalemate)
+
+GameOverPhase --> InProgressPhase : undo() / se restaura el estado previo\ny se recalcula el status (InProgress o Check)
+
+InProgressPhase --> InProgressPhase : undo() o redo() / se recalcula el status
+
+note right of GameOverPhase
+  **State** (arquitectura §3.7)
+  La fase no se guarda en el historial:
+  después de cada jugada, undo o redo,
+  ChessGame::updatePhase() la deriva del
+  GameStatus. Por eso deshacer un mate
+  vuelve a InProgressPhase sin casos especiales.
+  redo() desde InProgressPhase puede volver a
+  llevar a Checkmate/Stalemate.
+end note
+
+note left of InProgressPhase
+  Jugada inválida: no hay transición.
+  ChessGame devuelve MoveResult::failure
+  y el estado no cambia.
+end note
+@enduml

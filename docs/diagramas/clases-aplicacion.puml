@@ -1,0 +1,186 @@
+@startuml clases-aplicacion
+' Diagrama de clases de aplicación, puertos y adaptadores (misión 1.3).
+' Elementos marcados <<opcional>> pertenecen a la fase 7/8.
+title Aplicación, puertos y adaptadores
+
+set separator none
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+hide empty members
+skinparam class {
+  BackgroundColor<<opcional>> #F5F5F5
+  BorderColor<<opcional>> #9E9E9E
+}
+
+' ===================== Puertos =====================
+package "chess::ports" {
+  interface GameService <<Port>> {
+    +{abstract} makeMove(from: Position, to: Position, promotion: optional<PieceTypeId> = nullopt): MoveResult
+    +{abstract} legalMovesFrom(from: Position): vector<Move>
+    +{abstract} state(): const GameState&
+    +{abstract} status(): GameStatus
+    +{abstract} undo(): bool
+    +{abstract} redo(): bool
+    +{abstract} addObserver(observer: GameObserver&): void
+  }
+
+  interface GameObserver <<Port>> <<Observer>> {
+    +{abstract} onMoveMade(move: const Move&, state: const GameState&): void
+    +{abstract} onCheck(colorInCheck: Color): void
+    +{abstract} onGameOver(result: GameStatus): void
+    +{abstract} onUndoRedo(state: const GameState&): void
+  }
+
+  class MoveResult <<ValueObject>> {
+    +{static} success(move: Move): MoveResult
+    +{static} failure(error: MoveError): MoveResult
+    +ok(): bool
+    +error(): optional<MoveError>
+    +move(): optional<Move>
+  }
+
+  enum MoveError {
+    NoPieceAtOrigin
+    NotYourTurn
+    IllegalMove
+    PromotionRequired
+    GameOver
+  }
+}
+
+' ===================== Aplicación =====================
+package "chess::application" {
+  class ChessGame {
+    +ChessGame(rules: const RulesEngine&, initialState: GameState)
+    +performMove(from: Position, to: Position, promotion: optional<PieceTypeId>): MoveResult
+    -- GameService --
+    +makeMove(...): MoveResult
+    +legalMovesFrom(from: Position): vector<Move>
+    +state(): const GameState&
+    +status(): GameStatus
+    +undo(): bool
+    +redo(): bool
+    +addObserver(observer: GameObserver&): void
+    -- privados --
+    -updatePhase(): void
+    -notifyAfterMove(move: const Move&): void
+  }
+
+  interface GamePhase <<State>> <<opcional>> {
+    +{abstract} tryMove(game: ChessGame&, from: Position, to: Position, promotion: optional<PieceTypeId>): MoveResult
+    +~GamePhase()
+  }
+  class InProgressPhase <<opcional>>
+  class GameOverPhase <<opcional>>
+
+  class MoveCommand <<Command>> <<opcional>> {
+    +MoveCommand(rules: const RulesEngine&, move: Move)
+    +execute(state: GameState&): void
+    +undo(state: GameState&): void
+    +move(): const Move&
+  }
+
+  class MoveHistory <<opcional>> {
+    +record(command: unique_ptr<MoveCommand>): void
+    +undo(state: GameState&): bool
+    +redo(state: GameState&): bool
+    +canUndo(): bool
+    +canRedo(): bool
+  }
+}
+
+' ===================== Dominio (solo lo que se usa) =====================
+package "chess::domain" {
+  class RulesEngine <<Facade>> {
+    +legalMoves(state, from): vector<Move>
+    +apply(state, move): GameState
+    +status(state): GameStatus
+    +canPromoteTo(id): bool
+  }
+  class GameState <<Memento>>
+  class Move
+  enum GameStatus
+}
+
+' ===================== Adaptadores =====================
+package "chess::adapters::console" {
+  class ConsoleUI <<Adapter>> {
+    +ConsoleUI(game: GameService&, in: istream&, out: ostream&)
+    +run(): void
+  }
+  class ConsoleRenderer <<Adapter>> {
+    +ConsoleRenderer(out: ostream&)
+    +render(state: const GameState&): void
+  }
+  class AlgebraicNotation <<utility>> {
+    +{static} parse(text: string_view, dims: const BoardDimensions&): optional<Position>
+    +{static} format(position: Position): string
+  }
+}
+
+package "chess::adapters::raylib" {
+  class RaylibUI <<Adapter>> <<opcional>> {
+    +RaylibUI(game: GameService&)
+    +run(): void
+  }
+}
+
+' ===================== Relaciones =====================
+GameService <|.. ChessGame
+GameObserver <|.. ConsoleRenderer
+GameObserver <|.. RaylibUI
+GameService ..> MoveResult
+MoveResult "1" *-- "0..1" MoveError
+GameService ..> GameObserver : addObserver
+
+ChessGame "1" --> "1" RulesEngine : usa
+ChessGame "1" *-- "1" GameState : estado actual
+ChessGame "1" *-- "1" MoveHistory
+ChessGame "1" *-- "1" GamePhase : fase actual
+ChessGame "1" o-- "0..*" GameObserver : notifica
+GamePhase <|.. InProgressPhase
+GamePhase <|.. GameOverPhase
+InProgressPhase ..> ChessGame : performMove
+GameOverPhase ..> MoveResult : failure(GameOver)
+MoveHistory "1" *-- "0..*" MoveCommand : pilas undo/redo
+MoveCommand "1" --> "1" RulesEngine : apply
+MoveCommand "1" *-- "1" GameState : estado previo (Memento)
+MoveCommand "1" *-- "1" Move
+
+ConsoleUI "1" --> "1" GameService : usa
+ConsoleUI ..> AlgebraicNotation
+RaylibUI "1" --> "1" GameService : usa
+
+' ===================== Notas =====================
+note top of GameService
+  **Puerto de entrada** (driving, §3.1).
+  Los adaptadores solo conocen esta interfaz,
+  nunca ChessGame ni el RulesEngine.
+end note
+
+note top of GameObserver
+  **Observer** — puerto de salida (§3.9).
+  El núcleo avisa sin saber quién escucha.
+end note
+
+note bottom of GamePhase
+  **State** (§3.7). InProgressPhase delega en
+  ChessGame::performMove; GameOverPhase
+  rechaza con MoveError::GameOver.
+  Hasta la fase 7, ChessGame no usa fases.
+end note
+
+note bottom of MoveCommand
+  **Command + Memento** (§3.8).
+  execute guarda el GameState previo;
+  undo lo restaura. Una jugada nueva
+  vacía la pila de rehacer.
+end note
+
+note right of ChessGame
+  Dependencias por constructor (§3.10).
+  El composition root (app/) crea el
+  PieceRegistry, el RulesEngine, el
+  GameState inicial y los adaptadores.
+end note
+@enduml

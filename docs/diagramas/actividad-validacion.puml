@@ -1,0 +1,83 @@
+@startuml actividad-validacion
+' Diagrama de actividad: pipeline de validación de un movimiento (misión 1.5).
+title Validación de una jugada — candidatos → pseudo-legales → legales → estado
+
+skinparam shadowing false
+
+start
+:Llega makeMove(from, to, promotion);
+
+if (¿hay una pieza en from?) then (no)
+  :MoveResult::failure(NoPieceAtOrigin);
+  stop
+endif
+if (¿la pieza es del color que mueve?) then (no)
+  :MoveResult::failure(NotYourTurn);
+  stop
+endif
+
+partition "1. Candidatos (MovementRule — Strategy)" {
+  :MoveContext(state, from);
+  while (¿quedan reglas en piece.definition().rules()?) is (sí)
+    :rule.candidateMoves(ctx)
+    (SlidingRule, LeaperRule, PawnRule, CastlingRule…);
+  endwhile (no)
+}
+
+partition "2. Pseudo-legales (MoveGenerator)" {
+  :Unir los candidatos de todas las reglas
+  (respetan tablero, bloqueos y capturas,
+  pero **ignoran el jaque**);
+}
+
+partition "3. Filtro de jaque (LegalMoveFilter)" {
+  while (¿quedan movimientos pseudo-legales?) is (sí)
+    :copia = MoveApplier.apply(state, move)
+    (no muta el estado original);
+    if (AttackDetector.isInCheck(copia, color propio)?) then (sí)
+      :descartar;
+    elseif (¿es Castling y el rey está en jaque\no atraviesa una casilla atacada?) then (sí)
+      :descartar;
+    else (no)
+      :conservar como legal;
+    endif
+  endwhile (no)
+}
+
+if (¿algún Move legal va a "to"?) then (no)
+  :MoveResult::failure(IllegalMove);
+  stop
+endif
+
+if (¿el Move es Promotion?) then (sí)
+  if (¿vino promotion y canPromoteTo(promotion)?) then (no)
+    :MoveResult::failure(PromotionRequired);
+    stop
+  endif
+  :move = move.withPromotion(promotion);
+endif
+
+:newState = RulesEngine.apply(state, move);
+
+partition "4. Evaluación de estado (GameStatusEvaluator)" {
+  :enJaque = AttackDetector.isInCheck(newState, newState.sideToMove());
+  :hayJugadas = ¿algún movimiento legal
+  para newState.sideToMove()?;
+  if (hayJugadas?) then (sí)
+    if (enJaque?) then (sí)
+      :Check;
+    else (no)
+      :InProgress;
+    endif
+  else (no)
+    if (enJaque?) then (sí)
+      :Checkmate;
+    else (no)
+      :Stalemate;
+    endif
+  endif
+}
+
+:Notificar observers y devolver MoveResult::success(move);
+stop
+@enduml

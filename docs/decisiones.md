@@ -68,10 +68,92 @@ el adaptador puede mostrar el motivo concreto.
 códigos HTTP, el adaptador traduciría. El núcleo no cambiaría.
 **Dónde en el código:** `MoveResult`, `GameService::makeMove`.
 
+## D-06 — Derechos de enroque derivados de `Piece::hasMoved`
+**Estado:** vigente
+**Qué:** `GameState` no guarda derechos de enroque. `CastlingRule` los deduce de que el rey y la pieza
+`canCastleWith` no se hayan movido (`Piece::hasMoved()`).
+**Por qué:** es un solo dato en vez de dos que hay que mantener sincronizados. Además funciona en
+cualquier tablero: no hay que saber de antemano en qué casillas están las torres. Se descartó guardar
+cuatro flags (`K`, `Q`, `k`, `q` como en FEN) porque asumen el tablero de 8×8 con dos torres por bando.
+**Cuándo se rompería:** si hubiera que importar posiciones FEN donde los derechos no coinciden con
+`hasMoved` (una torre que nunca se movió pero perdió el derecho), o en variantes como Chess960, donde
+los derechos dependen de la posición inicial.
+**Dónde en el código:** `Piece`, `CastlingRule`, `MoveApplier` (marca `hasMoved`).
+
+## D-07 — La condición de jaque del enroque la aplica `LegalMoveFilter`
+**Estado:** vigente
+**Qué:** `CastlingRule` genera el enroque solo por geometría (piezas sin mover, casillas libres). Que el
+rey no esté en jaque ni atraviese casillas atacadas lo verifica `LegalMoveFilter` para los `Move` de
+tipo `Castling`.
+**Por qué:** si `CastlingRule` consultara al `AttackDetector`, una regla de movimiento dependería del
+motor que la usa (dependencia circular: el detector recorre las reglas). Así todo lo relativo al jaque
+sigue en un único lugar (D-04).
+**Cuándo se rompería:** si aparecieran muchas jugadas especiales con condiciones de jaque propias, el
+filtro acumularía casos por `MoveKind` y convendría que cada regla aporte su propia validación de
+legalidad (por ejemplo, una interfaz `LegalityCheck` inyectada).
+**Dónde en el código:** `CastlingRule`, `LegalMoveFilter`.
+
+## D-08 — Promoción: la regla la marca, el jugador elige y el registro valida
+**Estado:** vigente
+**Qué:** `PawnRule` genera un `Move` de tipo `Promotion` sin pieza elegida. `ChessGame` lo completa con
+el `promotion` que pide el jugador y `RulesEngine::canPromoteTo` lo acepta si la definición tiene el
+trait `isPromotable`.
+**Por qué:** el peón no necesita conocer la lista de piezas. Si se agrega una pieza nueva promovible
+(el Arzobispo), alcanza con su trait: no se toca `PawnRule`. Se descartó que el generador produzca un
+`Move` por cada pieza posible, porque multiplica las jugadas legales y obliga a la regla a ver el registro.
+**Cuándo se rompería:** si la promoción dependiera del contexto (por ejemplo, "solo a piezas que ya fueron
+capturadas", como en algunas variantes), haría falta una política de promoción inyectable.
+**Dónde en el código:** `PawnRule`, `Move::withPromotion`, `RulesEngine::canPromoteTo`, `ChessGame`.
+
+## D-09 — Ninguna regla asume un tablero de 8×8
+**Estado:** vigente
+**Qué:** los límites salen siempre de `BoardDimensions`; el doble avance del peón usa `hasMoved()` en
+lugar de "estar en la segunda fila"; la promoción ocurre en la última fila de las dimensiones reales.
+**Por qué:** la defensa puede pedir un tablero de 10×10. Con esto basta escribir otro
+`StartingPositionProvider`: ni `Board`, ni las reglas, ni el motor cambian.
+**Cuándo se rompería:** si una variante necesitara tableros no rectangulares o con casillas
+inutilizables. `BoardDimensions::contains` dejaría de alcanzar y habría que pasar a una "forma" de
+tablero (interfaz `BoardShape`).
+**Dónde en el código:** `BoardDimensions`, `PawnRule`, `SlidingRule`, `LeaperRule`, `StartingPositionProvider`.
+
+## D-10 — La fase de la partida se deriva del `GameStatus`
+**Estado:** vigente
+**Qué:** `ChessGame` no guarda la fase (`GamePhase`) en el historial. Después de cada jugada, undo o redo
+recalcula el `GameStatus` y elige `InProgressPhase` o `GameOverPhase`.
+**Por qué:** el `GameState` ya alcanza para saber si la partida terminó. Derivar la fase evita
+inconsistencias: deshacer un mate vuelve automáticamente a una partida en curso, sin transiciones
+especiales.
+**Cuándo se rompería:** si la partida pudiera terminar por razones que no están en el tablero
+(abandono, tiempo agotado, tablas acordadas). Ahí la fase tendría estado propio y habría que guardarla.
+**Dónde en el código:** `ChessGame::updatePhase`, `GamePhase`.
+
+## D-11 — PlantUML como UML vivo versionado en el repo
+**Estado:** vigente
+**Qué:** los diagramas son archivos `.puml` en `docs/diagramas/`, editados en el mismo commit que el
+código que describen. Lo que todavía no está implementado (fase 7 en adelante) se marca `<<opcional>>`.
+**Por qué:** la consigna exige que el UML sea consistente con el código durante todo el desarrollo. Un
+diagrama en texto se revisa en el diff igual que el código; uno en una herramienta gráfica se desactualiza
+sin que nadie lo note. Se descartó generar el UML desde el código porque mezcla detalles de
+implementación y pierde las notas de diseño.
+**Cuándo se rompería:** si el grupo no tuviera disciplina para actualizarlos (el texto no se valida solo
+contra el código) o si el proyecto creciera tanto que convenga generarlos automáticamente.
+**Dónde en el código:** `docs/diagramas/*.puml`, `CLAUDE.md` (regla 5).
+
+## D-12 — CMake con dependencias vía `FetchContent`
+**Estado:** vigente
+**Qué:** el build es CMake ≥ 3.20 y GoogleTest (y más adelante raylib) se descarga con `FetchContent`
+en una versión fija. El núcleo es la librería `chess_core`, que no enlaza nada.
+**Por qué:** funciona igual en MSVC, MinGW, gcc y clang sin instalar paquetes a mano, y la separación en
+targets hace que el compilador haga cumplir la regla de dependencias: si `chess_core` incluyera algo de
+raylib, no compilaría. Se descartaron vcpkg y Conan porque agregan una herramienta más que todo el grupo
+tendría que instalar.
+**Cuándo se rompería:** sin conexión a internet en la primera configuración, o si las dependencias fueran
+muchas y pesadas (ahí conviene un gestor de paquetes con caché binaria).
+**Dónde en el código:** `CMakeLists.txt`, `src/core/CMakeLists.txt`, `tests/CMakeLists.txt`.
+
 <!-- Próximas decisiones (las completan los agentes cuando las implementen):
-     D-06 Command + Memento para deshacer/rehacer (snapshot completo vs. delta)
-     D-07 State para las fases de la partida
-     D-08 Observer como puerto de salida
-     D-09 Inyección de dependencias manual y composition root (sin contenedor de DI)
-     D-10 raylib como UI gráfica (frente a SFML o Qt)
-     D-11 PlantUML como UML vivo versionado en el repo -->
+     D-13 Command + Memento para deshacer/rehacer (snapshot completo vs. delta)
+     D-14 State para las fases de la partida (complementa D-10)
+     D-15 Observer como puerto de salida
+     D-16 Inyección de dependencias manual y composition root (sin contenedor de DI)
+     D-17 raylib como UI gráfica (frente a SFML o Qt) -->

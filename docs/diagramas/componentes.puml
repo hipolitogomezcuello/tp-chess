@@ -1,0 +1,104 @@
+@startuml componentes
+' Diagrama de componentes / arquitectura hexagonal (misión 1.1).
+' Regla que muestra: todas las flechas de dependencia apuntan HACIA el núcleo.
+title Arquitectura hexagonal — dependencias entre paquetes
+
+skinparam packageStyle rectangle
+skinparam shadowing false
+skinparam linetype ortho
+skinparam package {
+  BackgroundColor<<Núcleo>> #EEF6EE
+  BorderColor<<Núcleo>> #2E7D32
+  BackgroundColor<<Adaptador>> #EEF2FA
+  BorderColor<<Adaptador>> #1565C0
+  BackgroundColor<<CompositionRoot>> #FFF8E1
+  BorderColor<<CompositionRoot>> #F9A825
+}
+
+package "app (composition root)" as app <<CompositionRoot>> {
+  [main_console.cpp] as mainConsole
+  [main_raylib.cpp] as mainRaylib
+}
+
+package "chess::adapters" as adapters <<Adaptador>> {
+  package "chess::adapters::console" as console {
+    [ConsoleUI]
+    [ConsoleRenderer]
+    [AlgebraicNotation]
+  }
+  package "chess::adapters::raylib" as raylibAdapter {
+    [RaylibUI]
+  }
+}
+
+package "chess_core (src/core) — sin dependencias externas" as core <<Núcleo>> {
+  package "chess::ports" as ports {
+    interface "GameService\n<<Port>> (entrada)" as GameService
+    interface "GameObserver\n<<Port>> (salida)" as GameObserver
+  }
+  package "chess::application" as application {
+    [ChessGame]
+    [MoveHistory]
+    [MoveCommand]
+    [GamePhase]
+  }
+  package "chess::domain" as domain {
+    [Board / Piece / MovementRule…] as domainModel
+    [RulesEngine]
+  }
+}
+
+package "Bibliotecas externas" as external {
+  [raylib] as raylibLib
+  [GoogleTest] as gtest
+}
+
+package "tests/core" as tests {
+  [chess_tests] as chessTests
+}
+
+' --- Adaptadores driving: usan el puerto de entrada ---
+[ConsoleUI] --> GameService : usa
+[RaylibUI] --> GameService : usa
+' --- Adaptadores driven: implementan el puerto de salida ---
+[ConsoleRenderer] ..|> GameObserver : implementa
+[RaylibUI] ..|> GameObserver : implementa
+[ConsoleUI] --> [AlgebraicNotation]
+[RaylibUI] --> raylibLib
+
+' --- Dentro del núcleo ---
+[ChessGame] ..|> GameService : implementa
+[ChessGame] --> GameObserver : notifica
+[ChessGame] --> [RulesEngine]
+[ChessGame] --> [MoveHistory]
+[ChessGame] --> [GamePhase]
+[MoveHistory] --> [MoveCommand]
+[MoveCommand] --> [RulesEngine]
+[RulesEngine] --> domainModel
+ports --> domain : expone value objects\n(Position, Move, GameState…)
+
+' --- Composition root: el único que conoce todo ---
+mainConsole --> console : crea
+mainConsole --> application : crea
+mainConsole --> domain : registra piezas
+mainRaylib --> raylibAdapter : crea
+mainRaylib --> application : crea
+mainRaylib --> domain : registra piezas
+
+' --- Tests: solo núcleo ---
+chessTests --> core
+chessTests --> gtest
+
+note bottom of core
+  **Regla de dependencias**
+  adapters → ports ← application → domain
+  Ninguna flecha sale de chess_core hacia
+  adapters, app ni bibliotecas externas.
+  El target CMake chess_core no enlaza nada.
+end note
+
+note right of external
+  Solo los adaptadores y los tests
+  dependen de bibliotecas externas.
+end note
+@enduml

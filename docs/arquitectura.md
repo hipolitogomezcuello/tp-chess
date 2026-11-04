@@ -72,7 +72,7 @@ PieceDefinition                       Piece (valor, liviano, copiable)
  ├─ id: PieceTypeId                    ├─ definition: shared_ptr<const PieceDefinition>
  ├─ symbol: char                       ├─ color: Color
  ├─ rules: vector<unique_ptr<MovementRule>> └─ hasMoved: bool
- └─ traits: { isRoyal, canCastleWith, isPromotable, promotesOnLastRank }
+ └─ traits: { isRoyal, canCastleWith, isPromotable }
 ```
 
 - `PieceDefinition` describe **un tipo** de pieza (una sola instancia compartida por tipo).
@@ -91,15 +91,26 @@ public:
 };
 ```
 
-`MoveContext` agrupa lo que una regla necesita leer: tablero, posición de origen, pieza y estado de
-partida (casilla de al paso, derechos de enroque). Es de solo lectura.
+`MoveContext` agrupa lo que una regla necesita leer: el `GameState` (tablero, turno, casilla de al
+paso), la posición de origen y la pieza que está ahí. Es de solo lectura.
+
+Reglas de diseño que surgieron de la revisión (misión 1.7, ver `decisiones.md` D-06 a D-09):
+- Ninguna regla asume un tablero de 8×8: los bordes salen de `board.dimensions()`, el doble avance
+  del peón usa `Piece::hasMoved()` (no "estar en la fila 2") y la promoción ocurre en la última fila
+  de las dimensiones reales.
+- `PawnRule` marca el `Move` como `Promotion` **sin elegir la pieza**. La pieza la elige el jugador
+  (`makeMove(..., promotion)`) y la valida `RulesEngine::canPromoteTo`, que consulta el trait
+  `isPromotable` del registro. Así, una pieza nueva promovible no exige tocar `PawnRule`.
+- `CastlingRule` solo mira la geometría (rey y torre sin mover, casillas intermedias vacías). La
+  condición "no enrocar en jaque ni atravesando casillas atacadas" la aplica `LegalMoveFilter`,
+  porque es una cuestión de jaque y el jaque vive en un solo lugar.
 
 | Regla | Comportamiento | Usada por |
 |---|---|---|
 | `SlidingRule(directions)` | Avanza en cada dirección hasta chocar. | Torre (ortogonales), Alfil (diagonales), Reina (ambas) |
 | `LeaperRule(offsets)` | Salta a cada destino fijo. | Caballo (L), Rey (8 vecinas) |
 | `PawnRule` | Avance simple/doble, captura diagonal, al paso; marca la promoción al llegar a la última fila. | Peón |
-| `CastlingRule` | Genera el enroque si los derechos y las casillas libres/no atacadas lo permiten. | Rey |
+| `CastlingRule` | Genera el enroque si el rey y una pieza `canCastleWith` no se movieron y las casillas intermedias están libres. | Rey |
 
 **Por qué `attackedSquares` está separado de `candidateMoves`:** el peón ataca en diagonal pero avanza
 recto, y el enroque mueve al rey pero no "ataca". Separarlos evita casos especiales en la detección de jaque.
@@ -122,13 +133,17 @@ registry.add(makeDefinition("archbishop", 'A',
 ```
 Más una línea en la disposición inicial. **Ninguna clase existente se modifica.**
 
+Helpers sin estado: `Directions::orthogonals()`, `diagonals()`, `all()` y `knightJumps()` devuelven
+`vector<Offset>` para componer reglas. Los ids clásicos son constantes `StandardPieces::kPawn`, `kRook`…
+
 ### 2.5 Tablero y estado
 
 | Clase | Responsabilidad |
 |---|---|
 | `Board` | Grilla `dimensions` de `std::optional<Piece>`. `pieceAt`, `place`, `remove`, `move`. Copiable (por valor) para simular jugadas. Sin reglas de juego. |
 | `StartingPositionProvider` (interfaz, Strategy) | `Board createInitialBoard(const PieceFactory&)`. Implementación: `StandardStartingPosition`. Otra variante (10×10, Chess960) = otra clase. |
-| `GameState` | `Board` + turno (`Color`) + derechos de enroque + casilla de al paso + contador de medio-movimientos. Snapshot copiable (sirve de Memento). |
+| `GameState` | `Board` + turno (`Color`) + casilla de al paso (`optional<Position>`). Snapshot copiable (sirve de Memento). Los derechos de enroque **no** se guardan aparte: se derivan de `Piece::hasMoved()` (D-06). |
+| `GameStatus` | `enum class { InProgress, Check, Checkmate, Stalemate }`. Lo calcula `GameStatusEvaluator`. |
 
 ### 2.6 Motor de reglas
 
@@ -139,7 +154,7 @@ Más una línea en la disposición inicial. **Ninguna clase existente se modific
 | `MoveApplier` | Aplica un `Move` a un `GameState` y devuelve el nuevo estado: mueve las piezas, resuelve la captura al paso, el enroque y la promoción, y actualiza derechos y turno. Es puro: no muta la entrada. |
 | `LegalMoveFilter` | Descarta los movimientos pseudo-legales que dejan al propio rey en jaque (los aplica sobre una copia y consulta `AttackDetector`). |
 | `GameStatusEvaluator` | Calcula el estado de la partida (`InProgress`, `Check`, `Checkmate`, `Stalemate`). |
-| `RulesEngine` | Fachada del dominio: `legalMoves(state, from)`, `apply(state, move)`, `status(state)`. Compone las clases anteriores. |
+| `RulesEngine` | Fachada del dominio: `legalMoves(state, from)`, `apply(state, move)`, `status(state)`, `canPromoteTo(id)`. Se construye con un `PieceRegistry&` y crea y posee las clases anteriores (incluida la `PieceFactory`). |
 
 Pipeline de validación de una jugada:
 ```
@@ -181,8 +196,10 @@ candidatos (MovementRules) → pseudo-legales (MoveGenerator) → legales (Legal
   (generador, filtro, detector).
 
 ### 3.7 State — estado de la partida
-- **Dónde:** `GamePhase` (interfaz) con `InProgressPhase` y `GameOverPhase`
-  (checkmate/stalemate) dentro de `ChessGame`.
+- **Dónde:** `GamePhase` (interfaz, `tryMove(game, from, to, promotion)`) con `InProgressPhase`
+  (delega en `ChessGame::performMove`) y `GameOverPhase` (rechaza con `MoveError::GameOver`) dentro
+  de `ChessGame`. La fase no se guarda en el historial: se deriva del `GameStatus` después de cada
+  jugada, undo o redo, así deshacer un mate vuelve a `InProgressPhase` sin casos especiales.
 - **Por qué:** el comportamiento cambia según el estado: en `GameOverPhase`, `makeMove` se rechaza
   sin llenar `ChessGame` de `if (terminado)`. Las transiciones quedan explícitas (diagrama de estados).
 
@@ -241,7 +258,8 @@ public:
 };
 ```
 
-`MoveResult` es un value object: `{ bool ok; MoveError error; }`, donde `MoveError` puede ser
+`MoveResult` es un value object creado con `MoveResult::success(move)` o `MoveResult::failure(error)`
+(`ok()`, `error()`, `move()`), donde `MoveError` puede ser
 `NoPieceAtOrigin`, `NotYourTurn`, `IllegalMove`, `PromotionRequired`, `GameOver`.
 
 **Manejo de errores:** en el flujo de juego **no se usan excepciones**. Una jugada inválida es un
@@ -283,3 +301,29 @@ ConsoleUI → GameService.makeMove(from, to)
 - `ChessGame` se testea con un `FakeObserver` que registra los eventos recibidos.
 - Tests de extensibilidad: registrar una pieza inventada y verificar sus movimientos; tablero de 10×10.
   Funcionan como ensayo de la defensa individual.
+
+---
+
+## 9. Revisión de extensibilidad (misión 1.7)
+
+Recorrido de los diagramas con las dos preguntas de la defensa individual.
+
+**¿Se puede agregar una pieza nueva sin modificar ninguna clase?** Sí.
+1. Crear un `PieceDefinition` con un `PieceTypeId` nuevo, un símbolo, reglas existentes (o una
+   `MovementRule` nueva, que es una clase **nueva**) y sus `PieceTraits`.
+2. Registrarlo en el `PieceRegistry` desde el composition root.
+3. Ubicarlo en un `StartingPositionProvider` (uno nuevo, o el estándar si se acepta tocar la disposición).
+- `MoveGenerator` y `AttackDetector` recorren las reglas de la pieza sin preguntar el tipo.
+- El jaque usa `isRoyal`; la promoción, `isPromotable` (D-08); el enroque, `canCastleWith`.
+- Las UIs dibujan `Piece::symbol()`, así que la pieza nueva aparece sin cambios.
+
+**¿Y un tablero de 10×10?** Sí.
+1. Nuevo `StartingPositionProvider` que crea `Board(BoardDimensions{10, 10})`.
+2. Inyectarlo en el composition root.
+- Las reglas usan `BoardDimensions` para los bordes y la última fila; el peón usa `hasMoved` (D-09).
+- `AlgebraicNotation::parse` recibe las dimensiones, así que acepta `j10`. Los adaptadores dibujan
+  según `state().board().dimensions()`.
+
+**Puntos que se corrigieron durante la revisión** (todos registrados en `decisiones.md`): derechos de
+enroque derivados de `hasMoved` (D-06), condición de jaque del enroque en el filtro (D-07), promoción
+validada por trait (D-08), reglas independientes del tamaño (D-09) y fase derivada del estado (D-10).

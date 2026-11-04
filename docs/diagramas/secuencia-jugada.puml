@@ -1,0 +1,72 @@
+@startuml secuencia-jugada
+' Diagrama de secuencia: hacer una jugada (misión 1.4).
+' Muestra el diseño completo; MoveHistory y GamePhase son opcionales (fase 7).
+title Hacer una jugada — desde ConsoleUI hasta los observers
+
+skinparam shadowing false
+autonumber
+
+actor Jugador
+participant "ConsoleUI\n<<Adapter>>" as UI
+participant "AlgebraicNotation" as AN
+participant "GameService\n(ChessGame)" as Game
+participant "GamePhase\n<<State>>" as Phase
+participant "RulesEngine\n<<Facade>>" as Rules
+participant "MoveHistory" as History
+participant "MoveCommand\n<<Command>>" as Cmd
+participant "GameObserver\n(ConsoleRenderer)" as Obs
+
+Jugador -> UI : escribe "e2 e4"
+UI -> AN : parse("e2"), parse("e4")
+AN --> UI : Position from, to
+UI -> Game : makeMove(from, to)
+Game -> Phase : tryMove(game, from, to, promotion)
+
+alt la partida terminó (GameOverPhase)
+  Phase --> Game : MoveResult::failure(GameOver)
+else partida en curso (InProgressPhase)
+  Phase -> Game : performMove(from, to, promotion)
+  Game -> Game : ¿hay pieza en from?\n¿es del color que mueve?
+  alt no hay pieza / no es su turno
+    Game --> Phase : failure(NoPieceAtOrigin | NotYourTurn)
+  else pieza propia
+    Game -> Rules : legalMoves(state, from)
+    Rules --> Game : vector<Move>
+    alt **jugada inválida**: ningún Move legal tiene destino "to"
+      Game --> Phase : MoveResult::failure(IllegalMove)
+    else **jugada válida**
+      opt el Move es Promotion
+        alt sin promotion o !canPromoteTo(promotion)
+          Game --> Phase : failure(PromotionRequired | IllegalMove)
+        end
+      end
+      Game -> Cmd ** : MoveCommand(rules, move)
+      Game -> Cmd : execute(state)
+      Cmd -> Cmd : guarda estado previo (Memento)
+      Cmd -> Rules : apply(state, move)
+      Rules --> Cmd : nuevo GameState
+      Game -> History : record(command)
+      note right of History : vacía la pila de rehacer
+      Game -> Rules : status(state)
+      Rules --> Game : GameStatus
+      Game -> Game : updatePhase()\n(Checkmate/Stalemate → GameOverPhase)
+      Game -> Obs : onMoveMade(move, state)
+      opt status == Check
+        Game -> Obs : onCheck(sideToMove)
+      end
+      opt status == Checkmate o Stalemate
+        Game -> Obs : onGameOver(status)
+      end
+      Game --> Phase : MoveResult::success(move)
+    end
+  end
+  Phase --> Game : MoveResult
+end
+
+Game --> UI : MoveResult
+alt result.ok()
+  note over UI : el tablero ya lo dibujó\nel observer (onMoveMade)
+else error
+  UI -> Jugador : muestra el motivo (MoveError)
+end
+@enduml
