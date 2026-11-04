@@ -51,7 +51,8 @@ void ConsoleRenderer::render(const domain::GameState& state) {
 }
 
 void ConsoleRenderer::onMoveMade(const domain::Move& move, const domain::GameState& state) {
-    const char separator = move.kind() == domain::MoveKind::Capture ? 'x' : '-';
+    const bool capture = move.kind() == domain::MoveKind::Capture || move.kind() == domain::MoveKind::EnPassant;
+    const char separator = capture ? 'x' : '-';
     out_ << "\nJugada: " << AlgebraicNotation::format(move.from()) << separator
          << AlgebraicNotation::format(move.to());
     if (move.promotion()) {
@@ -61,6 +62,9 @@ void ConsoleRenderer::onMoveMade(const domain::Move& move, const domain::GameSta
     }
     if (move.kind() == domain::MoveKind::Castling) {
         out_ << " (enroque)";
+    }
+    if (move.kind() == domain::MoveKind::EnPassant) {
+        out_ << " (al paso)";
     }
     out_ << '\n';
     render(state);

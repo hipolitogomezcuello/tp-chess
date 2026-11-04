@@ -109,3 +109,36 @@ TEST_F(MoveApplierTest, CastlingMovesTheKingAndTheRook) {
     EXPECT_TRUE(next.board().isEmpty(sq("e1")));
     EXPECT_TRUE(next.board().isEmpty(sq("h1")));
 }
+
+TEST_F(MoveApplierTest, ADoublePushMarksTheSquareItCrossedForEnPassant) {
+    const MoveApplier applier(factory_);
+    const GameState state(builder().place("e2", kPawn, Color::White).build());
+
+    const GameState next = applier.apply(state, Move(sq("e2"), sq("e4"), MoveKind::DoublePawnPush));
+
+    EXPECT_EQ(next.enPassantTarget(), sq("e3"));
+}
+
+TEST_F(MoveApplierTest, AnyOtherMoveClearsTheEnPassantSquare) {
+    const MoveApplier applier(factory_);
+    const GameState state(builder().place("g8", kKnight, Color::Black).build(), Color::Black, sq("e3"));
+
+    const GameState next = applier.apply(state, Move(sq("g8"), sq("f6")));
+
+    EXPECT_FALSE(next.enPassantTarget().has_value());
+}
+
+TEST_F(MoveApplierTest, EnPassantRemovesThePawnNextToTheDestination) {
+    const MoveApplier applier(factory_);
+    const GameState state(builder()
+                              .placeMoved("e5", kPawn, Color::White)
+                              .placeMoved("d5", kPawn, Color::Black)
+                              .build(),
+                          Color::White, sq("d6"));
+
+    const GameState next = applier.apply(state, Move::enPassant(sq("e5"), sq("d6"), sq("d5")));
+
+    EXPECT_EQ(next.board().pieceAt(sq("d6"))->type(), kPawn);
+    EXPECT_TRUE(next.board().isEmpty(sq("d5")));
+    EXPECT_TRUE(next.board().isEmpty(sq("e5")));
+}

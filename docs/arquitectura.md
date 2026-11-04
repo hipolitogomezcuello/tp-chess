@@ -69,7 +69,7 @@ conocer ningún adaptador.
 | `Offset` | Desplazamiento `(dFile, dRank)`. Usado para direcciones y saltos. |
 | `BoardDimensions` | `files × ranks` (8×8 por defecto). `contains(Position)`. **Permite tableros de otro tamaño.** |
 | `PieceTypeId` | Identificador de tipo de pieza (string corto: `"pawn"`, `"rook"`…). **No es un enum cerrado**: así se agregan piezas sin modificar código existente. |
-| `Move` | `from`, `to`, `MoveKind` (`Normal`, `Capture`, `DoublePawnPush`, `EnPassant`, `Castling`, `Promotion`) y datos extra opcionales (pieza de promoción, movimiento de la torre en el enroque, casilla capturada al paso). Las jugadas especiales se crean con fábricas estáticas: `Move::castling(kingFrom, kingTo, rookFrom, rookTo)`. |
+| `Move` | `from`, `to`, `MoveKind` (`Normal`, `Capture`, `DoublePawnPush`, `EnPassant`, `Castling`, `Promotion`) y datos extra opcionales (pieza de promoción, movimiento de la torre en el enroque, casilla capturada al paso). Las jugadas especiales se crean con fábricas estáticas: `Move::castling(kingFrom, kingTo, rookFrom, rookTo)` y `Move::enPassant(from, to, capturedSquare)`. |
 
 ### 2.2 Piezas: composición, no herencia
 

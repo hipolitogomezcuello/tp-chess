@@ -184,3 +184,19 @@ TEST_F(LegalMoveFilterTest, AnAttackedSquareTheKingDoesNotCrossDoesNotMatter) {
 
     EXPECT_NE(chess::testing::findMoveTo(legalMovesFrom(state, "e1"), sq("c1")), nullptr);
 }
+
+// --- Al paso: el filtro lo cubre sin casos especiales ---
+
+TEST_F(LegalMoveFilterTest, EnPassantThatExposesTheKingOnTheRankIsIllegal) {
+    // Al capturar al paso se van b5 y c5 de la fila 5 a la vez: la torre de h5 quedaría mirando al rey.
+    const GameState state(builder()
+                              .place("a5", kKing, Color::White)
+                              .placeMoved("b5", kPawn, Color::White)
+                              .placeMoved("c5", kPawn, Color::Black)
+                              .place("h5", kRook, Color::Black)
+                              .place("e8", kKing, Color::Black)
+                              .build(),
+                          Color::White, sq("c6"));
+
+    EXPECT_EQ(destinations(legalMovesFrom(state, "b5")), squares({"b6"}));
+}

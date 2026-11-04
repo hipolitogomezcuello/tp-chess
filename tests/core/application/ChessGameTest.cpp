@@ -220,6 +220,35 @@ TEST_F(ChessGameTest, AfterMovingTheKingCastlingIsNoLongerPossible) {
     EXPECT_EQ(move(game, "e1", "g1").error(), MoveError::IllegalMove);
 }
 
+// --- Captura al paso ---
+
+TEST_F(ChessGameTest, APawnCanCaptureEnPassantRightAfterTheDoublePush) {
+    ChessGame game(rules_, initialState());
+    // 1. e4 a6  2. e5 d5  3. exd6 a.p.
+    move(game, "e2", "e4");
+    move(game, "a7", "a6");
+    move(game, "e4", "e5");
+    move(game, "d7", "d5");
+
+    const MoveResult result = move(game, "e5", "d6");
+
+    ASSERT_TRUE(result.ok());
+    EXPECT_EQ(result.move()->kind(), MoveKind::EnPassant);
+    EXPECT_TRUE(game.state().board().isEmpty(sq("d5")));
+}
+
+TEST_F(ChessGameTest, EnPassantIsOnlyAvailableOnTheNextMove) {
+    ChessGame game(rules_, initialState());
+    move(game, "e2", "e4");
+    move(game, "a7", "a6");
+    move(game, "e4", "e5");
+    move(game, "d7", "d5");
+    move(game, "h2", "h3");
+    move(game, "h7", "h6");
+
+    EXPECT_EQ(move(game, "e5", "d6").error(), MoveError::IllegalMove);
+}
+
 // --- Promoción (D-08) ---
 
 namespace {

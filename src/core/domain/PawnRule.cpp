@@ -53,6 +53,13 @@ std::vector<Move> PawnRule::candidateMoves(const MoveContext& context) const {
         const auto victim = board.pieceAt(target);
         if (victim && victim->color() != pawn.color()) {
             result.emplace_back(context.from(), target, kindFor(board, target, step, MoveKind::Capture));
+        } else if (!victim && context.state().enPassantTarget() == target) {
+            // El peón que avanzó dos está al lado, en la fila del que captura.
+            const Position passed(target.file(), context.from().rank());
+            const auto passedPawn = board.pieceAt(passed);
+            if (passedPawn && passedPawn->color() != pawn.color()) {
+                result.push_back(Move::enPassant(context.from(), target, passed));
+            }
         }
     }
     return result;

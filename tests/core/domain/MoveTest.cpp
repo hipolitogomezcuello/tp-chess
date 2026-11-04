@@ -62,3 +62,12 @@ TEST(MoveTest, CastlingMovesWithDifferentRooksAreDifferent) {
     EXPECT_NE(Move::castling(sq("e1"), sq("g1"), sq("h1"), sq("f1")),
               Move::castling(sq("e1"), sq("g1"), sq("a1"), sq("f1")));
 }
+
+TEST(MoveTest, EnPassantCarriesTheCapturedSquare) {
+    const Move move = Move::enPassant(sq("e5"), sq("d6"), sq("d5"));
+
+    EXPECT_EQ(move.kind(), MoveKind::EnPassant);
+    EXPECT_EQ(move.to(), sq("d6"));
+    EXPECT_EQ(move.capturedSquare(), sq("d5"));
+    EXPECT_FALSE(Move(sq("e5"), sq("d6"), MoveKind::Capture).capturedSquare().has_value());
+}

@@ -123,3 +123,11 @@ TEST_F(ConsoleRendererTest, CastlingIsAnnounced) {
 
     EXPECT_TRUE(printed("e1-g1 (enroque)"));
 }
+
+TEST_F(ConsoleRendererTest, EnPassantIsPrintedAsACapture) {
+    const GameState after(builder().placeMoved("d6", kPawn, Color::White).build(), Color::Black);
+
+    renderer_.onMoveMade(Move::enPassant(sq("e5"), sq("d6"), sq("d5")), after);
+
+    EXPECT_TRUE(printed("e5xd6 (al paso)"));
+}

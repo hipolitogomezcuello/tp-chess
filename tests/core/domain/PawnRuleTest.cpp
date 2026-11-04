@@ -178,3 +178,59 @@ TEST_F(PawnRuleTest, PromotionHappensOnTheLastRankOfTheRealBoard) {
     EXPECT_EQ(movesOf(pawn, state, "e7")[0].kind(), MoveKind::Normal);
     EXPECT_EQ(movesOf(pawn, state, "g9")[0].kind(), MoveKind::Promotion);
 }
+
+// --- Captura al paso: la casilla la deja MoveApplier en GameState::enPassantTarget ---
+
+TEST_F(PawnRuleTest, CapturesEnPassantOnTheTargetSquare) {
+    // Las negras acaban de jugar d7-d5: la casilla de al paso es d6.
+    const PawnRule pawn;
+    const GameState state(builder()
+                              .placeMoved("e5", kPiece, Color::White)
+                              .placeMoved("d5", kPiece, Color::Black)
+                              .build(),
+                          Color::White, sq("d6"));
+
+    const auto moves = movesOf(pawn, state, "e5");
+
+    EXPECT_EQ(destinations(moves), squares({"d6", "e6"}));
+    const auto* enPassant = findMoveTo(moves, sq("d6"));
+    EXPECT_EQ(enPassant->kind(), MoveKind::EnPassant);
+    EXPECT_EQ(enPassant->capturedSquare(), sq("d5"));
+}
+
+TEST_F(PawnRuleTest, BlackCapturesEnPassantTowardsRankOne) {
+    const PawnRule pawn;
+    const GameState state(builder()
+                              .placeMoved("d4", kPiece, Color::Black)
+                              .placeMoved("e4", kPiece, Color::White)
+                              .build(),
+                          Color::Black, sq("e3"));
+
+    const auto moves = movesOf(pawn, state, "d4");
+    const auto* enPassant = findMoveTo(moves, sq("e3"));
+
+    ASSERT_NE(enPassant, nullptr);
+    EXPECT_EQ(enPassant->capturedSquare(), sq("e4"));
+}
+
+TEST_F(PawnRuleTest, WithoutATargetSquareThereIsNoEnPassant) {
+    const PawnRule pawn;
+    const GameState state(builder()
+                              .placeMoved("e5", kPiece, Color::White)
+                              .placeMoved("d5", kPiece, Color::Black)
+                              .build());
+
+    EXPECT_EQ(destinations(movesOf(pawn, state, "e5")), squares({"e6"}));
+}
+
+TEST_F(PawnRuleTest, EnPassantNeedsAnEnemyNextToThePawn) {
+    // Con la casilla marcada pero sin víctima al lado (p. ej. un peón propio), no hay captura.
+    const PawnRule pawn;
+    const GameState state(builder()
+                              .placeMoved("e5", kPiece, Color::White)
+                              .placeMoved("d5", kPiece, Color::White)
+                              .build(),
+                          Color::White, sq("d6"));
+
+    EXPECT_EQ(findMoveTo(movesOf(pawn, state, "e5"), sq("d6")), nullptr);
+}

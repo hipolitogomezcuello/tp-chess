@@ -12,7 +12,8 @@ namespace chess::domain {
 // El doble avance usa Piece::hasMoved, no "estar en la segunda fila" (D-09).
 // Si la jugada llega a la última fila (la de las dimensiones reales) se marca como Promotion, sin
 // elegir la pieza: la elige el jugador y la valida RulesEngine::canPromoteTo (D-08).
-// Pendiente para la misión 7.4: captura al paso.
+// Al paso: si la casilla diagonal es GameState::enPassantTarget (la que cruzó un peón enemigo en su
+// doble avance de la jugada anterior) y ese peón está al lado, captura llegando a una casilla vacía.
 class PawnRule : public MovementRule {
 public:
     std::vector<Move> candidateMoves(const MoveContext& context) const override;

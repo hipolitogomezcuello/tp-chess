@@ -76,16 +76,19 @@ package "chess::domain" {
       +to(): Position
       +kind(): MoveKind
       +{static} castling(kingFrom: Position, kingTo: Position, rookFrom: Position, rookTo: Position): Move
+      +{static} enPassant(from: Position, to: Position, capturedSquare: Position): Move
       +promotion(): optional<PieceTypeId>
       +rookFrom(): optional<Position>
       +rookTo(): optional<Position>
+      +capturedSquare(): optional<Position>
       +withPromotion(PieceTypeId): Move
       +operator==(Move): bool
     }
     note bottom of Move
-      Misión 7.4 agrega:
-      enPassant(from, to, capturedSquare),
-      capturedSquare().
+      Los datos extra solo existen en su tipo:
+      rookFrom/rookTo en Castling,
+      capturedSquare en EnPassant,
+      promotion en Promotion (lo elige el jugador).
     end note
 
     enum GameStatus {
@@ -253,7 +256,9 @@ package "chess::domain" {
     note bottom of MoveApplier
       Con promotion() elegida crea la pieza
       nueva con la PieceFactory. En el enroque
-      mueve también la torre. Misión 7.4: al paso.
+      mueve también la torre; al paso saca al
+      peón de capturedSquare. Un doble avance
+      marca enPassantTarget; otra jugada lo borra.
     end note
 
     class LegalMoveFilter {
@@ -284,6 +289,7 @@ Move "1" *-- "2" Position
 Move "1" *-- "1" MoveKind
 Move "1" o-- "0..1" PieceTypeId : promotion
 Move "1" o-- "0..2" Position : rookFrom / rookTo
+Move "1" o-- "0..1" Position : capturedSquare
 
 ' Piezas
 PieceDefinition "1" *-- "1" PieceTypeId
@@ -317,6 +323,8 @@ Board "1" *-- "1" BoardDimensions
 Board "1" *-- "0..*" Piece : casillas (optional<Piece>)
 GameState "1" *-- "1" Board
 GameState "1" *-- "1" Color : sideToMove
+GameState "1" o-- "0..1" Position : enPassantTarget
+PawnRule ..> GameState : lee enPassantTarget
 StartingPositionProvider <|.. StandardStartingPosition
 StartingPositionProvider ..> PieceFactory : usa
 StartingPositionProvider ..> Board : crea

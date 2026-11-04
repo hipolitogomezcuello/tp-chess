@@ -11,6 +11,12 @@ Move Move::castling(Position kingFrom, Position kingTo, Position rookFrom, Posit
     return move;
 }
 
+Move Move::enPassant(Position from, Position to, Position capturedSquare) {
+    Move move(from, to, MoveKind::EnPassant);
+    move.capturedSquare_ = capturedSquare;
+    return move;
+}
+
 Move Move::withPromotion(PieceTypeId type) const {
     Move copy = *this;
     copy.promotion_ = std::move(type);
