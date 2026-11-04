@@ -5,6 +5,7 @@
 
 #include "application/ChessGame.hpp"
 #include "domain/RulesEngine.hpp"
+#include "support/InventedPieces.hpp"
 #include "support/StandardFixture.hpp"
 
 using chess::adapters::console::ConsoleUI;
@@ -214,4 +215,14 @@ TEST_F(ConsoleUITest, RejectsAPromotionPieceOnANormalMove) {
 
     EXPECT_TRUE(printed("Esa jugada no es una promoción"));
     EXPECT_TRUE(game_.state().board().isEmpty(sq("e4")));
+}
+
+TEST_F(ConsoleUITest, AnInventedPromotablePieceIsChosenByItsSymbolWithoutTouchingTheConsole) {
+    // Extensibilidad (D-19): la consola busca entre promotionChoices(), no tiene un switch de tipos.
+    chess::testing::registerInventedPieces(registry_);
+    ChessGame game(rules_, aboutToPromote());
+
+    run(game, "c7 c8 a\n");
+
+    EXPECT_EQ(game.state().board().pieceAt(sq("c8"))->type(), chess::testing::kArchbishop);
 }

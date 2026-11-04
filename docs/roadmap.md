@@ -90,7 +90,9 @@ Leyenda: `[ ]` pendiente · `[~]` en curso · `[x]` hecha
     La condición de jaque (no enrocar en jaque ni cruzando casillas atacadas) está en `LegalMoveFilter` (D-07).
 - [x] **7.4** Captura al paso: `PawnRule` y la casilla de al paso en `GameState`.
 - [x] **7.5** Deshacer y rehacer: `MoveCommand` y `MoveHistory` (Command + Memento), con comandos en la consola.
-- [ ] **7.6** Tests de extensibilidad: una pieza inventada y un tablero de 10×10.
+- [x] **7.6** Tests de extensibilidad: una pieza inventada y un tablero de 10×10.
+  - `tests/core/extensibility/`: Arzobispo y Canciller registrados desde afuera y una partida de 10×10,
+    más un test de consola que promueve al Arzobispo con `c7 c8 a`. No se modificó ningún archivo de `src/`.
 - [ ] **7.7** Actualizar todos los diagramas y `decisiones.md`.
 
 ## Fase 8 — Adaptador raylib

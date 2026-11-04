@@ -321,8 +321,11 @@ ConsoleUI → GameService.makeMove(from, to)
 - Casos de jaque: jaque simple, pieza clavada que no puede moverse, el rey no puede entrar en jaque,
   mate del pastor, ahogado clásico.
 - `ChessGame` se testea con un `FakeObserver` que registra los eventos recibidos.
-- Tests de extensibilidad: registrar una pieza inventada y verificar sus movimientos; tablero de 10×10.
-  Funcionan como ensayo de la defensa individual.
+- Tests de extensibilidad (`tests/core/extensibility/`): el Arzobispo (alfil + caballo) y el Canciller
+  (torre + caballo) se registran desde el test (`support/InventedPieces.hpp`) y se prueban sus jugadas,
+  el jaque, el mate y la promoción; una partida de 10×10 (`support/TenByTenStartingPosition.hpp`) prueba
+  el doble avance, el enroque, la promoción en la fila 10 y el mate. Ninguno toca código de `src/`:
+  funcionan como ensayo de la defensa individual.
 
 ---
 
