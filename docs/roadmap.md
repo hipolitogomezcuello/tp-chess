@@ -59,7 +59,7 @@ Leyenda: `[ ]` pendiente · `[~]` en curso · `[x]` hecha
 ## Fase 4 — Reglas: legalidad y jaque
 
 - [x] **4.1** `GameState`, `MoveApplier`, `MoveGenerator`. (`GameState` se adelantó en la 3.4 porque `MoveContext` lo necesita.)
-- [ ] **4.2** `AttackDetector` (`isSquareAttacked`, `isInCheck`).
+- [x] **4.2** `AttackDetector` (`isSquareAttacked`, `isInCheck`).
 - [ ] **4.3** `LegalMoveFilter`: piezas clavadas y el rey que no puede entrar en jaque.
 - [ ] **4.4** `RulesEngine` (Facade) y `GameStatusEvaluator` (por ahora: `InProgress` y `Check`).
 - [ ] **4.5** Actualizar diagramas.
