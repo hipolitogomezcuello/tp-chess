@@ -15,20 +15,23 @@ skinparam class {
 ' ===================== Puertos =====================
 package "chess::ports" {
   interface GameService <<Port>> {
-    +{abstract} makeMove(from: Position, to: Position, promotion: optional<PieceTypeId> = nullopt): MoveResult
+    +{abstract} makeMove(from: Position, to: Position): MoveResult
     +{abstract} legalMovesFrom(from: Position): vector<Move>
     +{abstract} state(): const GameState&
     +{abstract} status(): GameStatus
-    +{abstract} undo(): bool
-    +{abstract} redo(): bool
     +{abstract} addObserver(observer: GameObserver&): void
+    .. fase 7 ..
+    +{abstract} makeMove(..., promotion: optional<PieceTypeId>) «7.2»
+    +{abstract} undo(): bool «7.5»
+    +{abstract} redo(): bool «7.5»
   }
 
   interface GameObserver <<Port>> <<Observer>> {
     +{abstract} onMoveMade(move: const Move&, state: const GameState&): void
     +{abstract} onCheck(colorInCheck: Color): void
-    +{abstract} onGameOver(result: GameStatus): void
-    +{abstract} onUndoRedo(state: const GameState&): void
+    .. fase 7 ..
+    +{abstract} onGameOver(result: GameStatus): void «7.1»
+    +{abstract} onUndoRedo(state: const GameState&): void «7.5»
   }
 
   class MoveResult <<ValueObject>> {
@@ -36,15 +39,16 @@ package "chess::ports" {
     +{static} failure(error: MoveError): MoveResult
     +ok(): bool
     +error(): optional<MoveError>
-    +move(): optional<Move>
+    +move(): const optional<Move>&
   }
 
   enum MoveError {
     NoPieceAtOrigin
     NotYourTurn
     IllegalMove
-    PromotionRequired
-    GameOver
+    .. fase 7 ..
+    PromotionRequired «7.2»
+    GameOver «7.1»
   }
 }
 

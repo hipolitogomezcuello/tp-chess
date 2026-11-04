@@ -263,9 +263,15 @@ public:
 };
 ```
 
+Lo implementado hasta la fase 6 es el subconjunto que el MVP usa: `makeMove(from, to)` sin
+`promotion`, sin `undo`/`redo` y un `GameObserver` con solo `onMoveMade` y `onCheck`. El resto se suma
+en la misión de la fase 7 que lo necesita (D-13): `promotion` en la 7.2, `onGameOver` en la 7.1,
+`undo`/`redo`/`onUndoRedo` en la 7.5. `GameService::legalMovesFrom` devuelve vacío si la pieza no es
+del bando que mueve: son las jugadas que `makeMove` aceptaría (la UI las usa para resaltar).
+
 `MoveResult` es un value object creado con `MoveResult::success(move)` o `MoveResult::failure(error)`
 (`ok()`, `error()`, `move()`), donde `MoveError` puede ser
-`NoPieceAtOrigin`, `NotYourTurn`, `IllegalMove`, `PromotionRequired`, `GameOver`.
+`NoPieceAtOrigin`, `NotYourTurn`, `IllegalMove` (y en la fase 7, `PromotionRequired` y `GameOver`).
 
 **Manejo de errores:** en el flujo de juego **no se usan excepciones**. Una jugada inválida es un
 resultado esperado y se devuelve en `MoveResult`. Las excepciones quedan para errores de programación

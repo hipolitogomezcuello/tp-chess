@@ -66,7 +66,7 @@ Leyenda: `[ ]` pendiente · `[~]` en curso · `[x]` hecha
 
 ## Fase 5 — Aplicación y puertos
 
-- [ ] **5.1** Puertos `GameService` y `GameObserver`, y el value object `MoveResult`.
+- [x] **5.1** Puertos `GameService` y `GameObserver`, y el value object `MoveResult`.
 - [ ] **5.2** `ChessGame`: turnos, validación y captura. Tests con `FakeObserver`.
 - [ ] **5.3** Actualizar `clases-aplicacion.puml` y `secuencia-jugada.puml`.
 

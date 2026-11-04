@@ -189,9 +189,24 @@ cambiaran ese alcance de otra forma (p. ej. piezas que saltan sobre propias pero
 regla tendría que implementar su propio `attackedSquares`.
 **Dónde en el código:** `SlidingRule`, `LeaperRule`, `RuleHelpers`, `AttackDetector`.
 
+## D-16 — Observer como puerto de salida
+**Estado:** vigente
+**Qué:** el núcleo avisa lo que pasa en la partida (jugada hecha, jaque) a través de la interfaz
+`GameObserver`, definida en `ports/`. Los adaptadores la implementan y se suscriben con
+`GameService::addObserver`. `ChessGame` guarda referencias no propietarias a los observers.
+**Por qué:** el núcleo no puede conocer a la UI (regla de dependencias), pero la UI tiene que enterarse de
+los cambios. Con Observer la dependencia se invierte: el núcleo define el contrato y la UI lo cumple.
+Pueden escuchar varios a la vez (la UI y un logger). Se descartó que la UI consulte el estado después
+de cada `makeMove` (polling): funciona con una sola UI, pero deja afuera a quien no hizo la jugada y
+obliga a cada adaptador a deducir qué cambió (¿hubo jaque?).
+**Cuándo se rompería:** si los eventos tuvieran que cruzar hilos o procesos (UI en otro hilo, red), la
+notificación síncrona por referencia ya no sirve y haría falta una cola de eventos. También si un
+observer se destruyera antes que el juego: hoy la regla es que el composition root los crea antes y los
+destruye después.
+**Dónde en el código:** `ports/GameObserver.hpp`, `ChessGame::addObserver`, `ConsoleRenderer`.
+
 <!-- Próximas decisiones (las completan los agentes cuando las implementen):
-     D-16 Command + Memento para deshacer/rehacer (snapshot completo vs. delta)
-     D-17 State para las fases de la partida (complementa D-10)
-     D-18 Observer como puerto de salida
-     D-19 Inyección de dependencias manual y composition root (sin contenedor de DI)
-     D-20 raylib como UI gráfica (frente a SFML o Qt) -->
+     Command + Memento para deshacer/rehacer (snapshot completo vs. delta)
+     State para las fases de la partida (complementa D-10)
+     Inyección de dependencias manual y composition root (sin contenedor de DI)
+     raylib como UI gráfica (frente a SFML o Qt) -->
