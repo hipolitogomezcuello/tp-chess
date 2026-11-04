@@ -20,6 +20,8 @@ target_sources(chess_core PRIVATE
     domain/PawnRule.cpp
     domain/StandardPieces.cpp
     domain/StandardStartingPosition.cpp
+    domain/MoveGenerator.cpp
+    domain/MoveApplier.cpp
 )
 
 # Los includes se escriben desde src/core: #include "domain/Position.hpp"

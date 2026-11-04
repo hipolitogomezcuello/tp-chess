@@ -231,9 +231,12 @@ package "chess::domain" {
     }
 
     class MoveApplier {
-      +MoveApplier(factory: const PieceFactory&)
       +apply(state: const GameState&, move: const Move&): GameState
     }
+    note bottom of MoveApplier
+      Fase 7: recibe la PieceFactory
+      (promoción) y resuelve enroque y al paso.
+    end note
 
     class LegalMoveFilter {
       +LegalMoveFilter(applier: const MoveApplier&, detector: const AttackDetector&)
@@ -302,7 +305,6 @@ RulesEngine "1" *-- "1" GameStatusEvaluator
 RulesEngine ..> GameStatus
 MoveGenerator ..> MovementRule : recorre las reglas de la pieza
 AttackDetector ..> MovementRule : attackedSquares
-MoveApplier "1" --> "1" PieceFactory : promoción
 LegalMoveFilter "1" --> "1" MoveApplier
 LegalMoveFilter "1" --> "1" AttackDetector
 GameStatusEvaluator "1" --> "1" MoveGenerator
