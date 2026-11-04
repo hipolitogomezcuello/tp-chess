@@ -49,7 +49,7 @@ Leyenda: `[ ]` pendiente · `[~]` en curso · `[x]` hecha
 
 - [x] **3.1** `Color`, `Position`, `Offset`, `BoardDimensions`, más sus tests.
   - Al agregar el primer `.cpp`, pasar `chess_core` de `INTERFACE` a `STATIC` (ver comentario en `src/core/CMakeLists.txt`) y borrar `tests/core/SmokeTest.cpp`.
-- [ ] **3.2** `PieceTypeId`, `PieceTraits`, `PieceDefinition`, `Piece`, `PieceRegistry`, `PieceFactory`.
+- [x] **3.2** `PieceTypeId`, `PieceTraits`, `PieceDefinition`, `Piece`, `PieceRegistry`, `PieceFactory`.
 - [ ] **3.3** `Board` y el helper de tests `BoardBuilder`.
 - [ ] **3.4** `MovementRule`, `MoveContext`, `Move`, más `SlidingRule` y `LeaperRule` con tests (vacío, bloqueo, captura, borde).
 - [ ] **3.5** `PawnRule` sin al paso ni promoción: avance simple y doble, y captura diagonal.

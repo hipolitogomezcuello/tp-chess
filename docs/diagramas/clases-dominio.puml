@@ -118,6 +118,7 @@ package "chess::domain" {
       +definition(): const PieceDefinition&
       +hasMoved(): bool
       +withMoved(): Piece
+      +operator==(Piece): bool
     }
 
     class PieceRegistry <<Registry>> {

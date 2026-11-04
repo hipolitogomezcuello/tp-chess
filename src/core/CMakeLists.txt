@@ -6,6 +6,10 @@ add_library(chess_core STATIC)
 target_sources(chess_core PRIVATE
     domain/Color.cpp
     domain/BoardDimensions.cpp
+    domain/PieceDefinition.cpp
+    domain/Piece.cpp
+    domain/PieceRegistry.cpp
+    domain/PieceFactory.cpp
 )
 
 # Los includes se escriben desde src/core: #include "domain/Position.hpp"

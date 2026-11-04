@@ -19,7 +19,14 @@ add_executable(chess_tests
     core/domain/OffsetTest.cpp
     core/domain/PositionTest.cpp
     core/domain/BoardDimensionsTest.cpp
+    core/domain/PieceTypeIdTest.cpp
+    core/domain/PieceDefinitionTest.cpp
+    core/domain/PieceTest.cpp
+    core/domain/PieceRegistryTest.cpp
+    core/domain/PieceFactoryTest.cpp
 )
+# Helpers compartidos por los tests: #include "support/BoardBuilder.hpp"
+target_include_directories(chess_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/core)
 target_link_libraries(chess_tests PRIVATE chess_core chess_warnings GTest::gtest_main)
 
 include(GoogleTest)
