@@ -29,8 +29,8 @@ package "chess::ports" {
   interface GameObserver <<Port>> <<Observer>> {
     +{abstract} onMoveMade(move: const Move&, state: const GameState&): void
     +{abstract} onCheck(colorInCheck: Color): void
+    +{abstract} onGameOver(result: GameStatus, sideToMove: Color): void
     .. fase 7 ..
-    +{abstract} onGameOver(result: GameStatus): void «7.1»
     +{abstract} onUndoRedo(state: const GameState&): void «7.5»
   }
 
@@ -46,9 +46,9 @@ package "chess::ports" {
     NoPieceAtOrigin
     NotYourTurn
     IllegalMove
+    GameOver
     .. fase 7 ..
     PromotionRequired «7.2»
-    GameOver «7.1»
   }
 }
 
@@ -62,21 +62,26 @@ package "chess::application" {
     +state(): const GameState&
     +status(): GameStatus
     +addObserver(observer: GameObserver&): void
+    -- para las fases --
+    +performMove(from: Position, to: Position): MoveResult
     -- privados --
     -hasPieceOfSideToMove(from: Position): bool
+    -updatePhase(): void
     -notifyAfterMove(move: const Move&): void
     .. fase 7 ..
-    +performMove(from, to, promotion): MoveResult «7.1»
     +undo(), redo(): bool «7.5»
-    -updatePhase(): void «7.1»
   }
 
-  interface GamePhase <<State>> <<opcional>> {
-    +{abstract} tryMove(game: ChessGame&, from: Position, to: Position, promotion: optional<PieceTypeId>): MoveResult
+  interface GamePhase <<State>> {
+    +{abstract} tryMove(game: ChessGame&, from: Position, to: Position): MoveResult
     +~GamePhase()
   }
-  class InProgressPhase <<opcional>>
-  class GameOverPhase <<opcional>>
+  class InProgressPhase {
+    +tryMove(game: ChessGame&, from: Position, to: Position): MoveResult
+  }
+  class GameOverPhase {
+    +tryMove(game: ChessGame&, from: Position, to: Position): MoveResult
+  }
 
   class MoveCommand <<Command>> <<opcional>> {
     +MoveCommand(rules: const RulesEngine&, move: Move)
@@ -123,6 +128,7 @@ package "chess::adapters::console" {
     +render(state: const GameState&): void
     +onMoveMade(move: const Move&, state: const GameState&): void
     +onCheck(colorInCheck: Color): void
+    +onGameOver(result: GameStatus, sideToMove: Color): void
   }
   class AlgebraicNotation <<utility>> {
     +{static} parse(text: string_view, dims: const BoardDimensions&): optional<Position>
@@ -148,7 +154,7 @@ GameService ..> GameObserver : addObserver
 ChessGame "1" --> "1" RulesEngine : usa
 ChessGame "1" *-- "1" GameState : estado actual
 ChessGame "1" *-- "1" MoveHistory : «7.5»
-ChessGame "1" *-- "1" GamePhase : fase actual «7.1»
+ChessGame "1" *-- "1" GamePhase : fase actual (unique_ptr)
 ChessGame "1" o-- "0..*" GameObserver : notifica
 GamePhase <|.. InProgressPhase
 GamePhase <|.. GameOverPhase
@@ -181,7 +187,8 @@ note bottom of GamePhase
   **State** (§3.7). InProgressPhase delega en
   ChessGame::performMove; GameOverPhase
   rechaza con MoveError::GameOver.
-  Hasta la fase 7, ChessGame no usa fases.
+  updatePhase() la elige según el GameStatus
+  después de cada cambio de estado (D-10).
 end note
 
 note bottom of MoveCommand

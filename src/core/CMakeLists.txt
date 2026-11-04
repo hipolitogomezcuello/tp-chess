@@ -27,6 +27,8 @@ target_sources(chess_core PRIVATE
     domain/GameStatusEvaluator.cpp
     domain/RulesEngine.cpp
     application/ChessGame.cpp
+    application/InProgressPhase.cpp
+    application/GameOverPhase.cpp
 )
 
 # Los includes se escriben desde src/core: #include "domain/Position.hpp"

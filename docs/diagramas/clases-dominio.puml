@@ -248,13 +248,13 @@ package "chess::domain" {
     }
 
     class GameStatusEvaluator {
-      +GameStatusEvaluator(detector: const AttackDetector&)
+      +GameStatusEvaluator(detector: const AttackDetector&, generator: const MoveGenerator&, filter: const LegalMoveFilter&)
       +evaluate(state: const GameState&): GameStatus
+      -hasLegalMoves(state: const GameState&): bool
     }
     note bottom of GameStatusEvaluator
-      Hoy: InProgress o Check.
-      Fase 7: recibe también MoveGenerator y
-      LegalMoveFilter para Checkmate y Stalemate.
+      ¿En jaque? × ¿tiene jugadas legales?
+      → InProgress, Check, Checkmate o Stalemate.
     end note
   }
 }
@@ -316,6 +316,8 @@ AttackDetector ..> MovementRule : attackedSquares
 LegalMoveFilter "1" --> "1" MoveApplier
 LegalMoveFilter "1" --> "1" AttackDetector
 GameStatusEvaluator "1" --> "1" AttackDetector
+GameStatusEvaluator "1" --> "1" MoveGenerator : allMoves
+GameStatusEvaluator "1" --> "1" LegalMoveFilter
 
 ' ===================== Notas de patrones =====================
 note top of MovementRule

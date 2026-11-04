@@ -2,7 +2,7 @@
 
 namespace chess::domain {
 
-RulesEngine::RulesEngine() : filter_(applier_, detector_), evaluator_(detector_) {}
+RulesEngine::RulesEngine() : filter_(applier_, detector_), evaluator_(detector_, generator_, filter_) {}
 
 std::vector<Move> RulesEngine::legalMoves(const GameState& state, Position from) const {
     return filter_.filter(state, generator_.movesFrom(state, from));

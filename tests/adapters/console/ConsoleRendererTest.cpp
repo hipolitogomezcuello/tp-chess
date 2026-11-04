@@ -5,6 +5,7 @@
 
 #include "domain/Color.hpp"
 #include "domain/GameState.hpp"
+#include "domain/GameStatus.hpp"
 #include "domain/Move.hpp"
 #include "support/StandardFixture.hpp"
 
@@ -12,6 +13,7 @@ using chess::adapters::console::ConsoleRenderer;
 using chess::domain::BoardDimensions;
 using chess::domain::Color;
 using chess::domain::GameState;
+using chess::domain::GameStatus;
 using chess::domain::Move;
 using chess::domain::MoveKind;
 using chess::testing::sq;
@@ -88,4 +90,16 @@ TEST_F(ConsoleRendererTest, OnCheckAnnouncesTheColorInCheck) {
 
     renderer_.onCheck(Color::White);
     EXPECT_TRUE(printed("Jaque a las blancas"));
+}
+
+TEST_F(ConsoleRendererTest, OnGameOverAnnouncesTheWinnerOfACheckmate) {
+    renderer_.onGameOver(GameStatus::Checkmate, Color::White);
+
+    EXPECT_TRUE(printed("¡Jaque mate! Ganan las negras."));
+}
+
+TEST_F(ConsoleRendererTest, OnGameOverAnnouncesAStalemateAsADraw) {
+    renderer_.onGameOver(GameStatus::Stalemate, Color::Black);
+
+    EXPECT_TRUE(printed("Ahogado: la partida termina en tablas."));
 }

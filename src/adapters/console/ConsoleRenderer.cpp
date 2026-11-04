@@ -61,4 +61,12 @@ void ConsoleRenderer::onCheck(Color colorInCheck) {
     out_ << "¡Jaque a las " << colorName(colorInCheck) << "!\n";
 }
 
+void ConsoleRenderer::onGameOver(domain::GameStatus result, Color sideToMove) {
+    if (result == domain::GameStatus::Checkmate) {
+        out_ << "¡Jaque mate! Ganan las " << colorName(opposite(sideToMove)) << ".\n";
+    } else {
+        out_ << "Ahogado: la partida termina en tablas.\n";
+    }
+}
+
 }  // namespace chess::adapters::console

@@ -80,3 +80,14 @@ TEST_F(RulesEngineTest, QueenCheckAfterAFewMovesIsDetected) {
     EXPECT_EQ(destinations(engine_.legalMoves(state, sq("g7"))), squares({"g6"}));
     EXPECT_TRUE(engine_.legalMoves(state, sq("e8")).empty());
 }
+
+TEST_F(RulesEngineTest, FoolsMateIsCheckmate) {
+    // 1. f3 e5  2. g4 Dh4#
+    GameState state = initialState();
+    state = play(state, "f2", "f3");
+    state = play(state, "e7", "e5");
+    state = play(state, "g2", "g4");
+    state = play(state, "d8", "h4");
+
+    EXPECT_EQ(engine_.status(state), GameStatus::Checkmate);
+}

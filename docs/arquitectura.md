@@ -164,7 +164,7 @@ Helpers sin estado: `Directions::orthogonals()`, `diagonals()`, `all()` y `knigh
 | `AttackDetector` | `isSquareAttacked(state, position, byColor)` y `isInCheck(state, color)` (busca la pieza `isRoyal`). |
 | `MoveApplier` | Aplica un `Move` a un `GameState` y devuelve el nuevo estado: mueve las piezas, resuelve la captura al paso, el enroque y la promoción, y actualiza derechos y turno. Es puro: no muta la entrada. |
 | `LegalMoveFilter` | Descarta los movimientos pseudo-legales que dejan al propio rey en jaque (los aplica sobre una copia y consulta `AttackDetector`). |
-| `GameStatusEvaluator` | Calcula el estado de la partida para el bando que mueve. Hoy: `InProgress` o `Check` (solo necesita el `AttackDetector`). En la fase 7 recibe `MoveGenerator` y `LegalMoveFilter` para `Checkmate` y `Stalemate`. |
+| `GameStatusEvaluator` | Calcula el estado de la partida para el bando que mueve con dos preguntas: ¿está en jaque? (`AttackDetector`) y ¿tiene alguna jugada legal? (`MoveGenerator` + `LegalMoveFilter`). En jaque y sin jugadas es `Checkmate`; sin jaque y sin jugadas, `Stalemate`. |
 | `RulesEngine` | Fachada del dominio: `legalMoves(state, from)`, `apply(state, move)`, `status(state)`. Crea y posee las clases anteriores; no se copia. `legalMoves` no mira el turno (lo valida la aplicación, D-14). En la fase 7 se construye con un `PieceRegistry&`, crea la `PieceFactory` para la promoción y suma `canPromoteTo(id)` (D-13). |
 
 Pipeline de validación de una jugada:
@@ -207,7 +207,7 @@ candidatos (MovementRules) → pseudo-legales (MoveGenerator) → legales (Legal
   (generador, filtro, detector).
 
 ### 3.7 State — estado de la partida
-- **Dónde:** `GamePhase` (interfaz, `tryMove(game, from, to, promotion)`) con `InProgressPhase`
+- **Dónde:** `GamePhase` (interfaz, `tryMove(game, from, to)`; desde la 7.2 también `promotion`) con `InProgressPhase`
   (delega en `ChessGame::performMove`) y `GameOverPhase` (rechaza con `MoveError::GameOver`) dentro
   de `ChessGame`. La fase no se guarda en el historial: se deriva del `GameStatus` después de cada
   jugada, undo o redo, así deshacer un mate vuelve a `InProgressPhase` sin casos especiales.
@@ -264,20 +264,19 @@ public:
     virtual ~GameObserver() = default;
     virtual void onMoveMade(const Move&, const GameState&) = 0;
     virtual void onCheck(Color colorInCheck) = 0;
-    virtual void onGameOver(GameStatus result) = 0;
+    virtual void onGameOver(GameStatus result, Color sideToMove) = 0;  // sideToMove: el que quedó sin jugadas
     virtual void onUndoRedo(const GameState&) = 0;
 };
 ```
 
-Lo implementado hasta la fase 6 es el subconjunto que el MVP usa: `makeMove(from, to)` sin
-`promotion`, sin `undo`/`redo` y un `GameObserver` con solo `onMoveMade` y `onCheck`. El resto se suma
-en la misión de la fase 7 que lo necesita (D-13): `promotion` en la 7.2, `onGameOver` en la 7.1,
-`undo`/`redo`/`onUndoRedo` en la 7.5. `GameService::legalMovesFrom` devuelve vacío si la pieza no es
+Los métodos se suman en la misión que los necesita (D-13): el MVP (fase 6) tenía `makeMove(from, to)`,
+`onMoveMade` y `onCheck`; la 7.1 suma `onGameOver` (si la jugada es mate se avisa `onGameOver`, no
+`onCheck`), la 7.2 `promotion` y la 7.5 `undo`/`redo`/`onUndoRedo`. `GameService::legalMovesFrom` devuelve vacío si la pieza no es
 del bando que mueve: son las jugadas que `makeMove` aceptaría (la UI las usa para resaltar).
 
 `MoveResult` es un value object creado con `MoveResult::success(move)` o `MoveResult::failure(error)`
 (`ok()`, `error()`, `move()`), donde `MoveError` puede ser
-`NoPieceAtOrigin`, `NotYourTurn`, `IllegalMove` (y en la fase 7, `PromotionRequired` y `GameOver`).
+`NoPieceAtOrigin`, `NotYourTurn`, `IllegalMove`, `GameOver` (7.1) y, en la 7.2, `PromotionRequired`.
 
 **Manejo de errores:** en el flujo de juego **no se usan excepciones**. Una jugada inválida es un
 resultado esperado y se devuelve en `MoveResult`. Las excepciones quedan para errores de programación

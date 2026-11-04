@@ -6,10 +6,17 @@
 
 #include "domain/Color.hpp"
 #include "domain/GameState.hpp"
+#include "domain/GameStatus.hpp"
 #include "domain/Move.hpp"
 #include "ports/GameObserver.hpp"
 
 namespace chess::testing {
+
+// Un aviso de fin de partida: el resultado y el bando que quedó sin jugadas.
+struct GameOverEvent {
+    domain::GameStatus result;
+    domain::Color sideToMove;
+};
 
 class FakeObserver : public ports::GameObserver {
 public:
@@ -20,9 +27,14 @@ public:
 
     void onCheck(domain::Color colorInCheck) override { checks.push_back(colorInCheck); }
 
+    void onGameOver(domain::GameStatus result, domain::Color sideToMove) override {
+        gameOvers.push_back({result, sideToMove});
+    }
+
     std::vector<domain::Move> movesMade;
     std::vector<domain::GameState> statesAfterMove;
     std::vector<domain::Color> checks;
+    std::vector<GameOverEvent> gameOvers;
 };
 
 }  // namespace chess::testing

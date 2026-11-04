@@ -190,6 +190,80 @@ TEST_F(ChessGameTest, InCheckOnlyMovesThatResolveItAreAccepted) {
     EXPECT_EQ(game.status(), GameStatus::InProgress);
 }
 
+// --- Fin de la partida (State: GameOverPhase) ---
+
+namespace {
+
+// 1. f3 e5  2. g4 Dh4#  (mate del loco)
+void playFoolsMate(ChessGame& game) {
+    game.makeMove(sq("f2"), sq("f3"));
+    game.makeMove(sq("e7"), sq("e5"));
+    game.makeMove(sq("g2"), sq("g4"));
+    game.makeMove(sq("d8"), sq("h4"));
+}
+
+}  // namespace
+
+TEST_F(ChessGameTest, CheckmateEndsTheGameAndNotifiesTheResult) {
+    ChessGame game(rules_, initialState());
+    game.addObserver(observer_);
+
+    playFoolsMate(game);
+
+    EXPECT_EQ(game.status(), GameStatus::Checkmate);
+    ASSERT_EQ(observer_.gameOvers.size(), 1u);
+    EXPECT_EQ(observer_.gameOvers[0].result, GameStatus::Checkmate);
+    EXPECT_EQ(observer_.gameOvers[0].sideToMove, Color::White);  // las blancas quedaron mateadas
+    EXPECT_EQ(observer_.movesMade.size(), 4u);
+}
+
+TEST_F(ChessGameTest, CheckmateIsNotAlsoAnnouncedAsCheck) {
+    ChessGame game(rules_, initialState());
+    game.addObserver(observer_);
+
+    playFoolsMate(game);
+
+    EXPECT_TRUE(observer_.checks.empty());
+}
+
+TEST_F(ChessGameTest, StalemateEndsTheGameAndNotifiesTheResult) {
+    ChessGame game(rules_, GameState(builder()
+                                         .place("h1", kKing, Color::White)
+                                         .place("b5", kQueen, Color::White)
+                                         .place("a8", kKing, Color::Black)
+                                         .build()));
+    game.addObserver(observer_);
+
+    ASSERT_TRUE(move(game, "b5", "b6").ok());
+
+    EXPECT_EQ(game.status(), GameStatus::Stalemate);
+    ASSERT_EQ(observer_.gameOvers.size(), 1u);
+    EXPECT_EQ(observer_.gameOvers[0].result, GameStatus::Stalemate);
+    EXPECT_EQ(observer_.gameOvers[0].sideToMove, Color::Black);
+}
+
+TEST_F(ChessGameTest, AfterTheGameIsOverMovesAreRejectedWithGameOver) {
+    ChessGame game(rules_, initialState());
+    playFoolsMate(game);
+    game.addObserver(observer_);
+
+    EXPECT_EQ(move(game, "a2", "a3").error(), MoveError::GameOver);
+    EXPECT_TRUE(game.state().board().isEmpty(sq("a3")));
+    EXPECT_TRUE(observer_.movesMade.empty());
+}
+
+TEST_F(ChessGameTest, AGameThatStartsFinishedRejectsMoves) {
+    // La fase se deriva del estado (D-10): un estado inicial ya ahogado arranca en GameOverPhase.
+    ChessGame game(rules_, GameState(builder()
+                                         .place("h1", kKing, Color::White)
+                                         .place("b6", kQueen, Color::White)
+                                         .place("a8", kKing, Color::Black)
+                                         .build(),
+                                     Color::Black));
+
+    EXPECT_EQ(move(game, "a8", "b8").error(), MoveError::GameOver);
+}
+
 // --- Consultas para la UI ---
 
 TEST_F(ChessGameTest, LegalMovesFromAPieceOfTheSideToMove) {

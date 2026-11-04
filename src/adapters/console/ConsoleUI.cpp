@@ -123,6 +123,9 @@ void ConsoleUI::reportError(const ports::MoveResult& result, const std::string& 
         case MoveError::IllegalMove:
             out_ << "Jugada ilegal: " << fromText << '-' << toText << ".\n";
             break;
+        case MoveError::GameOver:
+            out_ << "La partida terminó: ya no se puede mover.\n";
+            break;
     }
 }
 

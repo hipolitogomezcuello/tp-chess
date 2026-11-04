@@ -3,7 +3,7 @@
 namespace chess::domain {
 
 // Estado de la partida desde el punto de vista del bando que mueve.
-// Lo calcula GameStatusEvaluator. Checkmate y Stalemate se detectan a partir de la fase 7.
+// Lo calcula GameStatusEvaluator. Checkmate y Stalemate terminan la partida (GameOverPhase).
 enum class GameStatus {
     InProgress,
     Check,

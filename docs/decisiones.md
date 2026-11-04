@@ -222,7 +222,23 @@ recibe una referencia (`ChessGame` → `RulesEngine`, observers) asume que el co
 antes y la destruye después.
 **Dónde en el código:** `app/main_console.cpp`, constructores de `ChessGame`, `ConsoleUI`, `ConsoleRenderer`.
 
+## D-18 — State para la fase de la partida
+**Estado:** vigente
+**Qué:** `ChessGame::makeMove` delega en su fase actual (`GamePhase`): `InProgressPhase` valida y hace la
+jugada (`ChessGame::performMove`) y `GameOverPhase` la rechaza con `MoveError::GameOver`. Las fases no
+tienen datos; `ChessGame::updatePhase` crea la que corresponde según el `GameStatus` (D-10).
+**Por qué:** el comportamiento de `makeMove` cambia según si la partida terminó, y con State ese cambio
+es un objeto en lugar de un `if (terminada)` al principio de cada operación. La transición queda en un
+solo lugar (`updatePhase`) y coincide con el diagrama de estados. Se descartó guardar un `enum` de fase
+con un `switch` porque cada operación nueva que dependa de la fase repetiría el `switch`. `performMove`
+es público en `ChessGame` pero no en el puerto `GameService`, así que los adaptadores no lo ven; se
+descartó declarar a las fases `friend` porque acopla más de lo que esconde.
+**Cuándo se rompería:** con dos fases y una sola operación que cambia, State es casi tanta ceremonia
+como un `if`; se justifica si aparecen más fases (esperando la elección de promoción, tablas ofrecidas,
+reloj en pausa) u otras operaciones que dependan de la fase. Si las fases tuvieran datos propios
+(quién abandonó), habría que guardarlas y D-10 dejaría de valer.
+**Dónde en el código:** `application/GamePhase.hpp`, `InProgressPhase`, `GameOverPhase`, `ChessGame`.
+
 <!-- Próximas decisiones (las completan los agentes cuando las implementen):
      Command + Memento para deshacer/rehacer (snapshot completo vs. delta)
-     State para las fases de la partida (complementa D-10)
      raylib como UI gráfica (frente a SFML o Qt) -->

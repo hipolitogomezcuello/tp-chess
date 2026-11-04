@@ -3,9 +3,19 @@
 #include <algorithm>
 #include <utility>
 
+#include "application/GameOverPhase.hpp"
+#include "application/InProgressPhase.hpp"
 #include "ports/MoveError.hpp"
 
 namespace chess::application {
+
+namespace {
+
+bool isGameOver(domain::GameStatus status) {
+    return status == domain::GameStatus::Checkmate || status == domain::GameStatus::Stalemate;
+}
+
+}  // namespace
 
 using domain::GameStatus;
 using domain::Move;
@@ -14,9 +24,15 @@ using ports::MoveError;
 using ports::MoveResult;
 
 ChessGame::ChessGame(const domain::RulesEngine& rules, domain::GameState initialState)
-    : rules_(rules), state_(std::move(initialState)) {}
+    : rules_(rules), state_(std::move(initialState)) {
+    updatePhase();
+}
 
 MoveResult ChessGame::makeMove(Position from, Position to) {
+    return phase_->tryMove(*this, from, to);
+}
+
+MoveResult ChessGame::performMove(Position from, Position to) {
     const domain::Board& board = state_.board();
     if (!board.dimensions().contains(from) || board.isEmpty(from)) {
         return MoveResult::failure(MoveError::NoPieceAtOrigin);
@@ -34,6 +50,7 @@ MoveResult ChessGame::makeMove(Position from, Position to) {
 
     const Move move = *chosen;
     state_ = rules_.apply(state_, move);
+    updatePhase();
     notifyAfterMove(move);
     return MoveResult::success(move);
 }
@@ -62,13 +79,22 @@ bool ChessGame::hasPieceOfSideToMove(Position from) const {
     return piece && piece->color() == state_.sideToMove();
 }
 
+void ChessGame::updatePhase() {
+    if (isGameOver(status())) {
+        phase_ = std::make_unique<GameOverPhase>();
+    } else {
+        phase_ = std::make_unique<InProgressPhase>();
+    }
+}
+
 void ChessGame::notifyAfterMove(const Move& move) {
+    const GameStatus current = status();
     for (ports::GameObserver& observer : observers_) {
         observer.onMoveMade(move, state_);
-    }
-    if (status() == GameStatus::Check) {
-        for (ports::GameObserver& observer : observers_) {
+        if (current == GameStatus::Check) {
             observer.onCheck(state_.sideToMove());
+        } else if (isGameOver(current)) {
+            observer.onGameOver(current, state_.sideToMove());
         }
     }
 }

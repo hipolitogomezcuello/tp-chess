@@ -24,8 +24,8 @@ state "GameOverPhase\n(rechaza jugadas: MoveError::GameOver)" as GameOverPhase {
   Stalemate : sin jaque y sin jugadas legales\n(tablas por ahogado)
 }
 
-InProgressPhase --> Checkmate : jugada legal o redo() / status == Checkmate\n→ onGameOver(Checkmate)
-InProgressPhase --> Stalemate : jugada legal o redo() / status == Stalemate\n→ onGameOver(Stalemate)
+InProgressPhase --> Checkmate : jugada legal o redo() / status == Checkmate\n→ onGameOver(Checkmate, perdedor)
+InProgressPhase --> Stalemate : jugada legal o redo() / status == Stalemate\n→ onGameOver(Stalemate, ahogado)
 
 GameOverPhase --> InProgressPhase : undo() / se restaura el estado previo\ny se recalcula el status (InProgress o Check)
 

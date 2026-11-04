@@ -121,3 +121,10 @@ TEST_F(ConsoleUITest, EmptyLinesAreIgnored) {
     EXPECT_FALSE(printed("Comando desconocido"));
     EXPECT_FALSE(game_.state().board().isEmpty(sq("e4")));
 }
+
+TEST_F(ConsoleUITest, ExplainsThatTheGameIsOver) {
+    run("f2 f3\ne7 e5\ng2 g4\nd8 h4\na2 a3\n");
+
+    EXPECT_TRUE(printed("La partida terminó"));
+    EXPECT_TRUE(game_.state().board().isEmpty(sq("a3")));
+}

@@ -83,7 +83,7 @@ Leyenda: `[ ]` pendiente · `[~]` en curso · `[x]` hecha
 
 ## Fase 7 — Opcionales
 
-- [ ] **7.1** Jaque mate y ahogado en `GameStatusEvaluator`, más el patrón State (`GamePhase`) en `ChessGame`.
+- [x] **7.1** Jaque mate y ahogado en `GameStatusEvaluator`, más el patrón State (`GamePhase`) en `ChessGame`.
 - [ ] **7.2** Promoción: extender `PawnRule` y `MoveApplier`, y el parámetro `promotion` en `makeMove`.
 - [ ] **7.3** Enroque: `CastlingRule` y los derechos de enroque en `GameState`.
 - [ ] **7.4** Captura al paso: `PawnRule` y la casilla de al paso en `GameState`.
