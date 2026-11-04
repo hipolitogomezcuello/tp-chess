@@ -64,6 +64,7 @@ package "tests/core" as tests {
 [ConsoleRenderer] ..|> GameObserver : implementa
 [RaylibUI] ..|> GameObserver : implementa
 [ConsoleUI] --> [AlgebraicNotation]
+[ConsoleRenderer] --> [AlgebraicNotation]
 [RaylibUI] --> raylibLib
 
 ' --- Dentro del núcleo ---

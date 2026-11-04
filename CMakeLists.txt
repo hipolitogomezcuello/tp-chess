@@ -23,6 +23,7 @@ else()
 endif()
 
 add_subdirectory(src/core)
+add_subdirectory(src/adapters/console)
 add_subdirectory(app)
 
 if(CHESS_BUILD_TESTS)

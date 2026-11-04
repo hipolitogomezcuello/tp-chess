@@ -49,3 +49,15 @@ target_link_libraries(chess_tests PRIVATE chess_core chess_warnings GTest::gtest
 
 include(GoogleTest)
 gtest_discover_tests(chess_tests)
+
+# chess_console_tests — tests del adaptador de consola (notación, dibujo y loop de comandos con
+# streams en memoria). Van aparte de chess_tests para que los tests del núcleo sigan sin
+# depender de ningún adaptador.
+add_executable(chess_console_tests
+    adapters/console/AlgebraicNotationTest.cpp
+    adapters/console/ConsoleRendererTest.cpp
+    adapters/console/ConsoleUITest.cpp
+)
+target_include_directories(chess_console_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/core)
+target_link_libraries(chess_console_tests PRIVATE chess_console_adapter chess_warnings GTest::gtest_main)
+gtest_discover_tests(chess_console_tests)

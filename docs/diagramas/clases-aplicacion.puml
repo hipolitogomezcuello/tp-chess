@@ -112,10 +112,17 @@ package "chess::adapters::console" {
   class ConsoleUI <<Adapter>> {
     +ConsoleUI(game: GameService&, in: istream&, out: ostream&)
     +run(): void
+    -execute(words: const vector<string>&): bool
+    -makeMove(fromText: const string&, toText: const string&): void
+    -showMoves(squareText: const string&): void
+    -showHelp(): void
+    -reportError(result: const MoveResult&, fromText, toText): void
   }
   class ConsoleRenderer <<Adapter>> {
     +ConsoleRenderer(out: ostream&)
     +render(state: const GameState&): void
+    +onMoveMade(move: const Move&, state: const GameState&): void
+    +onCheck(colorInCheck: Color): void
   }
   class AlgebraicNotation <<utility>> {
     +{static} parse(text: string_view, dims: const BoardDimensions&): optional<Position>
@@ -154,6 +161,8 @@ MoveCommand "1" *-- "1" Move
 
 ConsoleUI "1" --> "1" GameService : usa
 ConsoleUI ..> AlgebraicNotation
+ConsoleRenderer ..> AlgebraicNotation : format
+ConsoleUI ..> MoveResult : traduce MoveError a texto
 RaylibUI "1" --> "1" GameService : usa
 
 ' ===================== Notas =====================

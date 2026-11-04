@@ -46,9 +46,15 @@ que sea testeable sin levantar nada. Con puertos explícitos, la UI es un detall
 | Target | Tipo | Contenido | Enlaza con |
 |---|---|---|---|
 | `chess_core` | librería estática | `src/core/**` | nada |
-| `chess_console` | ejecutable | `src/adapters/console/**` + `app/main_console.cpp` | `chess_core` |
+| `chess_console_adapter` | librería estática | `src/adapters/console/**` | `chess_core` |
+| `chess_console` | ejecutable | `app/main_console.cpp` | `chess_console_adapter` |
 | `chess_raylib` | ejecutable | `src/adapters/raylib/**` + `app/main_raylib.cpp` | `chess_core`, raylib |
 | `chess_tests` | ejecutable de tests | `tests/core/**` | `chess_core`, GoogleTest |
+| `chess_console_tests` | ejecutable de tests | `tests/adapters/console/**` | `chess_console_adapter`, GoogleTest |
+
+El adaptador de consola es una librería aparte para poder testearlo (notación, dibujo y loop de
+comandos con streams en memoria) sin mezclar esos tests con los del núcleo: `chess_tests` sigue sin
+conocer ningún adaptador.
 
 ---
 
@@ -280,7 +286,9 @@ resultado esperado y se devuelve en `MoveResult`. Las excepciones quedan para er
 ## 6. Adaptadores
 
 ### 6.1 Consola (`src/adapters/console`)
-- `ConsoleUI`: loop de lectura. Comandos: `e2 e4`, `e7 e8 q` (promoción), `undo`, `redo`, `moves e2`, `quit`.
+- `ConsoleUI`: loop de lectura sobre streams inyectados. Comandos: `e2 e4`, `moves e2`, `help`, `quit`
+  (y en la fase 7: `e7 e8 q` para la promoción, `undo`, `redo`). Traduce cada `MoveError` a un mensaje.
+  No dibuja: el tablero lo dibuja el `ConsoleRenderer` cuando el juego le avisa.
 - `ConsoleRenderer`: implementa `GameObserver` y dibuja el tablero en ASCII.
 - `AlgebraicNotation`: convierte `"e2"` ↔ `Position`. Es una cuestión de presentación, por eso **no** está en el dominio.
 
