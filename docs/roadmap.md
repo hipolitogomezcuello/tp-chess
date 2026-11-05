@@ -108,7 +108,7 @@ Leyenda: `[ ]` pendiente · `[~]` en curso · `[x]` hecha
   - Verificado: compila sin warnings, los 300 tests pasan y la ventana abre. Falta jugar una partida
     a mano con el mouse (selección, promoción, deshacer) antes de la entrega.
 
-## Fase 9 — Entregables
+## Fase 9 — Entregables ✅
 
 - [x] **9.1** Completar y pulir `docs/decisiones.md`.
   - Índice con una guía de lectura para la defensa; D-11, D-12, D-14, D-16 y D-17 actualizadas al estado
@@ -118,7 +118,11 @@ Leyenda: `[ ]` pendiente · `[~]` en curso · `[x]` hecha
   - `docs/diagramas/exportar.sh` genera `docs/diagramas/export/` solo con Java (ELK y Smetana, sin Graphviz).
   - La verificación está registrada en `docs/diagramas/README.md`: faltaban `BoardDimensions::kStandardSize`,
     `BoardLayout::Point` y el estado privado de `BoardInteraction` (agregados); las relaciones coincidían.
-- [ ] **9.3** Presentación PPTX: arquitectura, patrones, demo en dos UIs y demo de extensión en vivo.
+- [x] **9.3** Presentación PPTX: arquitectura, patrones, demo en dos UIs y demo de extensión en vivo.
+  - `docs/presentacion/tpo-ajedrez.pptx`: 14 diapositivas (alcance, hexagonal, composición, pipeline,
+    una jugada por dentro, catálogo de patrones, State, dos UIs, demo de extensión, tests, UML vivo,
+    decisiones y cierre), con notas del orador en cada una. Las demos en vivo siguen `docs/guia-defensa.md`.
+  - Falta completar los integrantes del grupo en la portada.
 - [x] **9.4** Guía de defensa (`docs/guia-defensa.md`): paso a paso para agregar una pieza, cambiar el tamaño del tablero o agregar otra UI.
   - Recetas: pieza con reglas existentes (Arzobispo), pieza con una regla nueva (Saltamontes, con sus
     tests), tablero de 10×10 y otra UI (un observer que registra la partida), más una tabla de otros
