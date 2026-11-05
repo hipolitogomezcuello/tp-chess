@@ -20,6 +20,7 @@ namespace chess::adapters::raylib {
 // Las piezas se dibujan con Piece::symbol() dentro de un círculo y el tablero con las dimensiones
 // reales: una pieza nueva o un tablero de 10×10 se ven sin tocar esta clase (D-21).
 // raylib solo se incluye en el .cpp: este header no la expone.
+// Patrón: Humble Object — ver docs/arquitectura.md §3.11
 class RaylibUI : public ports::GameObserver {
 public:
     // Abre la ventana y corre el loop hasta que se cierre. Antes hay que suscribir este observer al

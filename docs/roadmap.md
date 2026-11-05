@@ -110,7 +110,13 @@ Leyenda: `[ ]` pendiente · `[~]` en curso · `[x]` hecha
 
 ## Fase 9 — Entregables
 
-- [ ] **9.1** Completar y pulir `docs/decisiones.md`.
-- [ ] **9.2** Exportar los diagramas a PNG/SVG y verificar la consistencia UML ↔ código clase por clase.
+- [x] **9.1** Completar y pulir `docs/decisiones.md`.
+  - Índice con una guía de lectura para la defensa; D-11, D-12, D-14, D-16 y D-17 actualizadas al estado
+    final (dos composition roots, raylib); nuevas D-22 (Humble Object en la UI gráfica, también en el
+    catálogo §3.11), D-23 (notación en el adaptador) y D-24 (alcance opcional que quedó afuera y cómo entraría).
+- [x] **9.2** Exportar los diagramas a PNG/SVG y verificar la consistencia UML ↔ código clase por clase.
+  - `docs/diagramas/exportar.sh` genera `docs/diagramas/export/` solo con Java (ELK y Smetana, sin Graphviz).
+  - La verificación está registrada en `docs/diagramas/README.md`: faltaban `BoardDimensions::kStandardSize`,
+    `BoardLayout::Point` y el estado privado de `BoardInteraction` (agregados); las relaciones coincidían.
 - [ ] **9.3** Presentación PPTX: arquitectura, patrones, demo en dos UIs y demo de extensión en vivo.
 - [ ] **9.4** Guía de defensa (`docs/guia-defensa.md`): paso a paso para agregar una pieza, cambiar el tamaño del tablero o agregar otra UI.

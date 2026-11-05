@@ -225,7 +225,7 @@ candidatos (MovementRules) → pseudo-legales (MoveGenerator) → legales (Legal
   a costa de memoria, que acá es despreciable.
 
 ### 3.9 Observer — notificación a la UI
-- **Dónde:** puerto de salida `GameObserver` (`onMoveMade`, `onCheck`, `onGameOver`, `onUndo`).
+- **Dónde:** puerto de salida `GameObserver` (`onMoveMade`, `onCheck`, `onGameOver`, `onUndoRedo`).
 - **Por qué:** el núcleo avisa sin saber quién escucha. Pueden suscribirse varios adaptadores
   (por ejemplo, un logger y la UI).
 
@@ -233,6 +233,12 @@ candidatos (MovementRules) → pseudo-legales (MoveGenerator) → legales (Legal
 - **Dónde:** constructores de `ChessGame`, `RulesEngine`, etc. El armado se hace en `app/main_*.cpp`.
 - **Por qué:** las dependencias quedan visibles y en los tests se inyectan fakes. No hay singletons
   ni estado global.
+
+### 3.11 Humble Object — UI gráfica
+- **Dónde:** `RaylibUI` (lo único que toca raylib: dibujar y leer eventos) delega las decisiones en
+  `BoardInteraction` (qué significa cada click) y `BoardLayout` (píxel ↔ casilla), que no conocen raylib.
+- **Por qué:** lo que necesita una ventana queda sin lógica, y la lógica se testea sin ventana
+  (`chess_raylib_tests`). Ver D-22.
 
 ---
 

@@ -37,6 +37,7 @@ package "chess_core (src/core) — sin dependencias externas" as core <<Núcleo>
   package "chess::ports" as ports {
     interface "GameService\n<<Port>> (entrada)" as GameService
     interface "GameObserver\n<<Port>> (salida)" as GameObserver
+    GameService -[hidden]down- GameObserver
   }
   package "chess::application" as application {
     [ChessGame]

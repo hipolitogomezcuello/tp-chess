@@ -42,7 +42,8 @@ package "chess::domain" {
     }
 
     class BoardDimensions <<ValueObject>> {
-      +BoardDimensions(files: int = 8, ranks: int = 8)
+      +{static} kStandardSize: int = 8
+      +BoardDimensions(files: int = kStandardSize, ranks: int = kStandardSize)
       +files(): int
       +ranks(): int
       +contains(Position): bool

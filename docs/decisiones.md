@@ -15,6 +15,39 @@
 > **Dónde en el código:** clases o archivos afectados.
 > ```
 
+## Índice
+
+| # | Decisión | Tema |
+|---|---|---|
+| D-01 | Arquitectura hexagonal (Ports & Adapters) | Arquitectura |
+| D-02 | Piezas por composición de reglas, no por herencia | Extensibilidad |
+| D-03 | `PieceTypeId` abierto (string) en lugar de `enum class` | Extensibilidad |
+| D-04 | Validación en pipeline: pseudo-legal → legal | Reglas |
+| D-05 | Jugadas inválidas como resultado, no como excepción | Puertos |
+| D-06 | Derechos de enroque derivados de `Piece::hasMoved` | Reglas |
+| D-07 | La condición de jaque del enroque la aplica `LegalMoveFilter` | Reglas |
+| D-08 | Promoción: la regla la marca, el jugador elige y el registro valida | Extensibilidad |
+| D-09 | Ninguna regla asume un tablero de 8×8 | Extensibilidad |
+| D-10 | La fase de la partida se deriva del `GameStatus` | Aplicación |
+| D-11 | PlantUML como UML vivo versionado en el repo | Proceso |
+| D-12 | CMake con dependencias vía `FetchContent` | Build |
+| D-13 | Las dependencias se agregan cuando la fase las necesita | Proceso |
+| D-14 | El turno lo valida la aplicación; el filtro usa el color de la pieza | Aplicación |
+| D-15 | `attackedSquares` incluye la casilla de la pieza propia que corta la línea | Reglas |
+| D-16 | Observer como puerto de salida | Puertos |
+| D-17 | Inyección de dependencias manual y composition root | Arquitectura |
+| D-18 | State para la fase de la partida | Aplicación |
+| D-19 | El puerto ofrece las piezas de promoción; la UI no conoce los tipos | Puertos |
+| D-20 | Deshacer con Command + Memento de estado completo | Aplicación |
+| D-21 | raylib como UI gráfica | Adaptadores |
+| D-22 | La lógica de la UI gráfica separada de raylib (Humble Object) | Adaptadores |
+| D-23 | La notación algebraica vive en el adaptador, no en el dominio | Adaptadores |
+| D-24 | Alcance opcional que se dejó afuera | Alcance |
+
+**Cómo leerlo en la defensa:** D-02, D-03, D-08 y D-09 explican por qué agregar una pieza o cambiar
+el tablero no toca código existente; D-01, D-16, D-17 y D-22, por qué la UI se cambia sin tocar el
+núcleo. El paso a paso de esas extensiones está en [`guia-defensa.md`](guia-defensa.md).
+
 ---
 
 ## D-01 — Arquitectura hexagonal (Ports & Adapters)
@@ -130,18 +163,24 @@ especiales.
 ## D-11 — PlantUML como UML vivo versionado en el repo
 **Estado:** vigente
 **Qué:** los diagramas son archivos `.puml` en `docs/diagramas/`, editados en el mismo commit que el
-código que describen. Lo que todavía no está implementado (fase 7 en adelante) se marca `<<opcional>>`.
+código que describen. Mientras hubo partes sin implementar se marcaron `<<opcional>>`; al cerrar la
+fase 8 ya no queda ninguna.
 **Por qué:** la consigna exige que el UML sea consistente con el código durante todo el desarrollo. Un
 diagrama en texto se revisa en el diff igual que el código; uno en una herramienta gráfica se desactualiza
 sin que nadie lo note. Se descartó generar el UML desde el código porque mezcla detalles de
 implementación y pierde las notas de diseño.
 **Cuándo se rompería:** si el grupo no tuviera disciplina para actualizarlos (el texto no se valida solo
 contra el código) o si el proyecto creciera tanto que convenga generarlos automáticamente.
-**Dónde en el código:** `docs/diagramas/*.puml`, `CLAUDE.md` (regla 5).
+**Cómo resultó (fase 9):** la verificación clase por clase de la misión 9.2 encontró solo tres omisiones
+menores (una constante y dos detalles del adaptador raylib), ninguna en las relaciones. Las imágenes de
+la entrega se generan desde los `.puml` con `docs/diagramas/exportar.sh`, que solo necesita Java: usa
+los motores de layout que trae PlantUML (ELK y Smetana) en lugar de Graphviz, para que cualquiera del
+grupo pueda regenerarlas.
+**Dónde en el código:** `docs/diagramas/*.puml`, `docs/diagramas/exportar.sh`, `CLAUDE.md` (regla 5).
 
 ## D-12 — CMake con dependencias vía `FetchContent`
 **Estado:** vigente
-**Qué:** el build es CMake ≥ 3.20 y GoogleTest (y más adelante raylib) se descarga con `FetchContent`
+**Qué:** el build es CMake ≥ 3.20 y GoogleTest y raylib se descargan con `FetchContent`
 en una versión fija. El núcleo es la librería `chess_core`, que no enlaza nada.
 **Por qué:** funciona igual en MSVC, MinGW, gcc y clang sin instalar paquetes a mano, y la separación en
 targets hace que el compilador haga cumplir la regla de dependencias: si `chess_core` incluyera algo de
@@ -149,7 +188,8 @@ raylib, no compilaría. Se descartaron vcpkg y Conan porque agregan una herramie
 tendría que instalar.
 **Cuándo se rompería:** sin conexión a internet en la primera configuración, o si las dependencias fueran
 muchas y pesadas (ahí conviene un gestor de paquetes con caché binaria).
-**Dónde en el código:** `CMakeLists.txt`, `src/core/CMakeLists.txt`, `tests/CMakeLists.txt`.
+**Dónde en el código:** `CMakeLists.txt`, `src/core/CMakeLists.txt`, `tests/CMakeLists.txt`,
+`src/adapters/raylib/CMakeLists.txt`.
 
 ## D-13 — Las dependencias se agregan cuando la fase las necesita
 **Estado:** vigente
@@ -179,7 +219,7 @@ así el motor responde bien consultas como "¿qué podría hacer esta pieza?" pa
 tests de reglas no necesitan ajustar el turno.
 **Cuándo se rompería:** si una variante tuviera turnos no alternados (p. ej. dos jugadas seguidas), el
 turno pasaría a ser una política del dominio y `MoveApplier` dejaría de alternarlo a ciegas.
-**Dónde en el código:** `RulesEngine::legalMoves`, `LegalMoveFilter::filter`, `ChessGame` (fase 5).
+**Dónde en el código:** `RulesEngine::legalMoves`, `LegalMoveFilter::filter`, `ChessGame::performMove`.
 
 ## D-15 — `attackedSquares` incluye la casilla de la pieza propia que corta la línea
 **Estado:** vigente
@@ -200,20 +240,22 @@ regla tendría que implementar su propio `attackedSquares`.
 `GameService::addObserver`. `ChessGame` guarda referencias no propietarias a los observers.
 **Por qué:** el núcleo no puede conocer a la UI (regla de dependencias), pero la UI tiene que enterarse de
 los cambios. Con Observer la dependencia se invierte: el núcleo define el contrato y la UI lo cumple.
-Pueden escuchar varios a la vez (la UI y un logger). Se descartó que la UI consulte el estado después
+Pueden escuchar varios a la vez (la UI y un logger). `RaylibUI` es a la vez adaptador de entrada y
+observer, sin que el núcleo haya cambiado. Se descartó que la UI consulte el estado después
 de cada `makeMove` (polling): funciona con una sola UI, pero deja afuera a quien no hizo la jugada y
 obliga a cada adaptador a deducir qué cambió (¿hubo jaque?).
 **Cuándo se rompería:** si los eventos tuvieran que cruzar hilos o procesos (UI en otro hilo, red), la
 notificación síncrona por referencia ya no sirve y haría falta una cola de eventos. También si un
 observer se destruyera antes que el juego: hoy la regla es que el composition root los crea antes y los
 destruye después.
-**Dónde en el código:** `ports/GameObserver.hpp`, `ChessGame::addObserver`, `ConsoleRenderer`.
+**Dónde en el código:** `ports/GameObserver.hpp`, `ChessGame::addObserver`, `ConsoleRenderer`, `RaylibUI`.
 
 ## D-17 — Inyección de dependencias manual y composition root
 **Estado:** vigente
 **Qué:** cada clase recibe sus dependencias por constructor (`ChessGame(rules, initialState)`,
 `ConsoleUI(game, in, out)`, `ConsoleRenderer(out)`). El grafo completo se arma a mano en
-`app/main_console.cpp`, que es el único archivo que conoce dominio, aplicación y adaptador.
+`app/main_console.cpp` y `app/main_raylib.cpp`, los únicos archivos que conocen dominio, aplicación y
+adaptador. Los dos arman el mismo grafo y solo cambia el adaptador.
 **Por qué:** las dependencias quedan a la vista en las firmas y en los tests se reemplazan sin trucos
 (`FakeObserver`, streams en memoria en lugar de `std::cin`/`std::cout`). Las extensiones de la defensa
 (pieza nueva, otro tablero) se enchufan en un solo lugar. Se descartaron los singletons y el estado
@@ -224,7 +266,8 @@ de configuración), escribir el armado a mano se vuelve repetitivo y propenso a 
 fábrica por configuración o un contenedor. También exige cuidar los tiempos de vida a mano: quien
 recibe una referencia (`ChessGame` → `RulesEngine`, observers) asume que el composition root la creó
 antes y la destruye después.
-**Dónde en el código:** `app/main_console.cpp`, constructores de `ChessGame`, `ConsoleUI`, `ConsoleRenderer`.
+**Dónde en el código:** `app/main_console.cpp`, `app/main_raylib.cpp`, constructores de `ChessGame`,
+`ConsoleUI`, `ConsoleRenderer`, `BoardInteraction`.
 
 ## D-18 — State para la fase de la partida
 **Estado:** vigente
@@ -297,3 +340,54 @@ ni los headers del adaptador la vean: el compilador hace cumplir la regla de dep
 otra fuente), raylib obliga a dibujarlos a mano y conviene un toolkit de interfaz. También sin
 internet en la primera configuración (se apaga con `CHESS_BUILD_RAYLIB=OFF`).
 **Dónde en el código:** `src/adapters/raylib/CMakeLists.txt`, `CMakeLists.txt`, `app/CMakeLists.txt`.
+
+## D-22 — La lógica de la UI gráfica separada de raylib (Humble Object)
+**Estado:** vigente
+**Qué:** el adaptador gráfico tiene tres clases. `RaylibUI` es la única que incluye `raylib.h` y solo
+dibuja y lee el mouse y el teclado; `BoardInteraction` decide qué significa cada click (seleccionar,
+mover, esperar la pieza de la promoción, cancelar) y `BoardLayout` convierte píxeles en casillas. Las
+dos últimas no conocen raylib y se testean en `chess_raylib_tests` sin abrir ninguna ventana.
+**Por qué:** la parte difícil de testear (una ventana, eventos del sistema operativo) queda reducida a
+un objeto "humilde" sin decisiones, y lo que puede fallar (el orden de los clicks, la promoción, un
+tablero de 10×10 dibujado al revés) tiene tests. Se descartó poner todo en `RaylibUI` porque la única
+forma de probarlo hubiera sido jugar a mano. `BoardInteraction` solo conoce `GameService`, igual que
+`ConsoleUI`: muestra que el puerto alcanza también para una UI con estado propio.
+**Cuándo se rompería:** si la UI casi no tuviera lógica (un tablero que solo se muestra), la separación
+sería ceremonia. Si creciera mucho (menús, animaciones, varias pantallas), `BoardInteraction`
+acumularía modos y convendría un State propio del adaptador o un modelo de vista (MVVM).
+**Dónde en el código:** `src/adapters/raylib/` (`RaylibUI`, `BoardInteraction`, `BoardLayout`),
+`tests/adapters/raylib/`.
+
+## D-23 — La notación algebraica vive en el adaptador, no en el dominio
+**Estado:** vigente
+**Qué:** convertir `"e2"` ↔ `Position` es tarea de `AlgebraicNotation`, en el adaptador de consola. El
+dominio solo trabaja con `Position(file, rank)` en base 0.
+**Por qué:** la notación es una forma de *mostrar* y *leer* casillas, no una regla del ajedrez: la UI
+de raylib no la necesita (trabaja con clicks) y otra UI podría usar otra. Tenerla en el dominio
+obligaría al núcleo a interpretar texto que escribe el usuario. `parse` recibe las `BoardDimensions`,
+así que `j10` funciona en un tablero de 10×10 sin cambios.
+**Cuándo se rompería:** si el núcleo tuviera que producir notación por sí mismo (exportar PGN, guardar
+el historial como `1. e4 e5`), la notación pasaría a ser parte del modelo y convendría moverla a la
+aplicación o detrás de un puerto propio.
+**Dónde en el código:** `src/adapters/console/AlgebraicNotation`, `ConsoleUI`, `ConsoleRenderer`.
+
+## D-24 — Alcance opcional que se dejó afuera
+**Estado:** vigente
+**Qué:** de la lista opcional de la consigna (§4) se implementaron jaque mate, ahogado, enroque, captura
+al paso, promoción, deshacer/rehacer e interfaz gráfica. **No** se implementaron las tablas por
+repetición ni por la regla de los 50 movimientos, ni un oponente con IA.
+**Por qué:** las funcionalidades elegidas son las que muestran patrones (State, Command + Memento,
+Observer con una segunda UI) y ponen a prueba la extensibilidad (jugadas especiales sobre reglas
+compuestas). Las que quedaron afuera no agregan ningún patrón nuevo y sí bastante código. Queda
+registrado cómo entrarían sin romper el diseño:
+- **Repetición y 50 movimientos:** un contador de medias jugadas en `GameState` (que actualiza
+  `MoveApplier`) y una comparación contra los estados anteriores, que ya guardan los `MoveCommand` del
+  historial. `GameStatusEvaluator` sumaría un estado de tablas, y `ChessGame::updatePhase` pasaría a
+  `GameOverPhase` con él igual que con el mate.
+- **IA:** un adaptador más (un "jugador" que elige entre `legalMovesFrom` y llama a `makeMove`),
+  armado en el composition root. El núcleo no cambia.
+**Cuándo se rompería:** si la defensa pidiera alguna de estas reglas, el plan de arriba es el punto de
+partida. Una IA competitiva sí pondría en cuestión D-04: copiar el estado por cada jugada es lento
+para buscar en profundidad.
+**Dónde en el código:** puntos de extensión: `GameState`, `MoveApplier`, `GameStatusEvaluator`,
+`ChessGame::updatePhase`.

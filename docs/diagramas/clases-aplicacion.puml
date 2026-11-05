@@ -138,7 +138,7 @@ package "chess::adapters::console" {
 }
 
 package "chess::adapters::raylib" {
-  class RaylibUI <<Adapter>> {
+  class RaylibUI <<Adapter>> <<HumbleObject>> {
     +run(game: GameService&): void
     +onMoveMade(move: const Move&, state: const GameState&): void
     +onCheck(colorInCheck: Color): void
@@ -158,12 +158,19 @@ package "chess::adapters::raylib" {
     +highlightedMoves(): const vector<Move>&
     +awaitingPromotion(): bool
     +promotionChoices(): vector<Piece>
+    -selected_: optional<Position>
+    -highlighted_: vector<Move>
+    -pendingPromotion_: optional<Move>
   }
   class BoardLayout {
     +BoardLayout(dimensions: BoardDimensions, originX: int, originY: int, boardPixels: int)
     +squareSize(): int
     +topLeftOf(position: Position): Point
     +squareAt(x: int, y: int): optional<Position>
+  }
+  class "BoardLayout::Point" as Point <<struct>> {
+    +x: int
+    +y: int
   }
 }
 
@@ -196,6 +203,7 @@ ConsoleRenderer ..> AlgebraicNotation : format
 ConsoleUI ..> MoveResult : traduce MoveError a texto
 RaylibUI ..> BoardInteraction : crea en run()
 RaylibUI ..> BoardLayout : píxel ↔ casilla
+BoardLayout +-- Point
 BoardInteraction "1" --> "1" GameService : usa
 
 ' ===================== Notas =====================
