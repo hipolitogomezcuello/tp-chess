@@ -119,4 +119,10 @@ Leyenda: `[ ]` pendiente · `[~]` en curso · `[x]` hecha
   - La verificación está registrada en `docs/diagramas/README.md`: faltaban `BoardDimensions::kStandardSize`,
     `BoardLayout::Point` y el estado privado de `BoardInteraction` (agregados); las relaciones coincidían.
 - [ ] **9.3** Presentación PPTX: arquitectura, patrones, demo en dos UIs y demo de extensión en vivo.
-- [ ] **9.4** Guía de defensa (`docs/guia-defensa.md`): paso a paso para agregar una pieza, cambiar el tamaño del tablero o agregar otra UI.
+- [x] **9.4** Guía de defensa (`docs/guia-defensa.md`): paso a paso para agregar una pieza, cambiar el tamaño del tablero o agregar otra UI.
+  - Recetas: pieza con reglas existentes (Arzobispo), pieza con una regla nueva (Saltamontes, con sus
+    tests), tablero de 10×10 y otra UI (un observer que registra la partida), más una tabla de otros
+    pedidos posibles y preguntas de teoría.
+  - Ensayada de verdad: se aplicaron las recetas 1–3 sobre el repo (Arzobispo, Canciller, Saltamontes y el
+    10×10 en `main_console.cpp`); compiló sin warnings, pasaron los 4 tests nuevos y la consola jugó en
+    10×10. Después se revirtió: la guía no deja código en `src/`.

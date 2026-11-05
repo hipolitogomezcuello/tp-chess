@@ -7,6 +7,8 @@ Ajedrez en C++17 con arquitectura hexagonal. TPO de Ingeniería de Software (3.4
 - Arquitectura y patrones: [`docs/arquitectura.md`](docs/arquitectura.md)
 - Roadmap: [`docs/roadmap.md`](docs/roadmap.md)
 - Decisiones de diseño: [`docs/decisiones.md`](docs/decisiones.md)
+- Guía de defensa (extensiones en vivo): [`docs/guia-defensa.md`](docs/guia-defensa.md)
+- Diagramas exportados (SVG/PNG): [`docs/diagramas/export/`](docs/diagramas/export/)
 
 ## Requisitos
 
