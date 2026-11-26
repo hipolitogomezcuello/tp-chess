@@ -186,7 +186,7 @@ Leyenda: `[ ]` pendiente · `[~]` en curso · `[x]` hecha
   - Probar los `.exe` en una carpeta limpia, fuera de `build/`, para confirmar que no les falta nada.
 - [x] **13.2** Versión y notas: elegir el número (p. ej. `v1.0.0`), escribir las notas de la versión en
   español (qué incluye, cómo jugar en cada UI, requisitos) y crear el tag anotado.
-- [ ] **13.3** Publicar en GitHub Releases con `gh release create`, adjuntando un `.zip` con los dos
+- [x] **13.3** Publicar en GitHub Releases con `gh release create`, adjuntando un `.zip` con los dos
   ejecutables y un `LEEME.txt`.
   - Pedir confirmación al usuario antes de hacer push del tag y publicar: es visible para terceros.
   - Terminado si: el release aparece en GitHub y el `.zip` descargado funciona en otra máquina o carpeta.
