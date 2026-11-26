@@ -180,7 +180,7 @@ candidatos (MovementRules) → pseudo-legales (MoveGenerator) → legales (Legal
 ## 3. Catálogo de patrones (dónde y por qué)
 
 > Cada entrada tiene su contraparte en `docs/decisiones.md` con el formato qué / por qué / cuándo romperlo.
-> En el código, el header de la clase lleva el comentario `// Patrón: <nombre> — ver docs/arquitectura.md §3.x`.
+> El código no lleva comentarios (D-25): este catálogo es el único lugar donde se nombra el patrón de cada clase.
 
 ### 3.1 Arquitectura hexagonal (Ports & Adapters)
 - **Dónde:** `src/core/ports/` (`GameService`, `GameObserver`) y `src/adapters/*`.

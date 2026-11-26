@@ -173,8 +173,6 @@ TEST_F(HopperRuleTest, CannotJumpOffTheBoard) {
 
 namespace chess::domain {
 
-// Saltamontes: en cada dirección salta la primera pieza que encuentra y cae justo detrás.
-// Patrón: Strategy — ver docs/arquitectura.md §3.2
 class HopperRule : public MovementRule {
 public:
     explicit HopperRule(std::vector<Offset> directions);
@@ -281,9 +279,6 @@ de atrás: `R N A B Q K B C N R`. Es una implementación más de `StartingPositi
 
 namespace chess::domain {
 
-// Tablero de 10×10: R N A B Q K B C N R y una fila de peones por bando.
-// Requiere que "archbishop" y "chancellor" estén registrados.
-// Patrón: Strategy — ver docs/arquitectura.md §3.5
 class TenByTenStartingPosition : public StartingPositionProvider {
 public:
     Board createInitialBoard(const PieceFactory& factory) const override;
@@ -427,8 +422,8 @@ Para una UI interactiva (web, otra librería gráfica) el esquema es el de rayli
   Arzobispo exige herencia múltiple. Con composición, todo se arma con reglas existentes.
 - **¿Dónde está el jaque?** En un solo lugar: `AttackDetector` + `LegalMoveFilter` (D-04). Las reglas
   no saben nada del jaque.
-- **¿Qué patrones usaron y dónde?** `arquitectura.md` §3 (catálogo con dónde y por qué). En el código,
-  cada clase con patrón tiene el comentario `// Patrón: ... — ver docs/arquitectura.md §3.x`.
+- **¿Qué patrones usaron y dónde?** `arquitectura.md` §3 (catálogo con dónde y por qué, clase por clase).
+  El código no tiene comentarios (D-25): los nombres lo explican y el porqué vive en `docs/`.
 - **¿Cómo saben que el UML es real?** Se actualiza en el mismo commit que el código (D-11) y se
   verificó clase por clase en la misión 9.2 (`docs/diagramas/README.md`).
 - **¿Cuándo dejaría de servir este diseño?** Cada decisión tiene su "cuándo se rompería" en

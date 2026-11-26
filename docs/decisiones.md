@@ -43,6 +43,7 @@
 | D-22 | La lógica de la UI gráfica separada de raylib (Humble Object) | Adaptadores |
 | D-23 | La notación algebraica vive en el adaptador, no en el dominio | Adaptadores |
 | D-24 | Alcance opcional que se dejó afuera | Alcance |
+| D-25 | Código sin comentarios: los nombres explican, `docs/` justifica | Proceso |
 
 **Cómo leerlo en la defensa:** D-02, D-03, D-08 y D-09 explican por qué agregar una pieza o cambiar
 el tablero no toca código existente; D-01, D-16, D-17 y D-22, por qué la UI se cambia sin tocar el
@@ -391,3 +392,19 @@ partida. Una IA competitiva sí pondría en cuestión D-04: copiar el estado por
 para buscar en profundidad.
 **Dónde en el código:** puntos de extensión: `GameState`, `MoveApplier`, `GameStatusEvaluator`,
 `ChessGame::updatePhase`.
+
+## D-25 — Código sin comentarios: los nombres explican, `docs/` justifica
+**Estado:** vigente
+**Qué:** el código C++ (`src/`, `app/`, `tests/`) no tiene comentarios. Lo que un comentario explicaba
+se dice con un nombre (clase, método, variable, test) o con una función extraída. El patrón de cada
+clase y el porqué de cada decisión se documentan solo en `arquitectura.md` §3 y en este archivo.
+**Por qué:** un comentario no lo verifica el compilador ni los tests, así que envejece sin que nadie lo
+note; un nombre se usa en cada llamada y se corrige junto con el código. Tener el porqué en un solo
+lugar evita que el catálogo de patrones y los headers se contradigan. Antes cada header llevaba
+`// Patrón: … — ver docs/arquitectura.md §…`, que duplicaba el catálogo.
+**Cuándo se rompería:** si apareciera código cuyo motivo no se puede decir con un nombre (un
+*workaround* de un bug del compilador, una optimización no evidente), o si se publicara una API para
+terceros que espere documentación en el header (Doxygen). En esos casos un comentario puntual es mejor
+que un nombre forzado.
+**Dónde en el código:** todo `src/`, `app/` y `tests/`; la regla está en `CLAUDE.md` (regla 6 y
+"Estilo de código").

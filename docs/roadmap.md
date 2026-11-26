@@ -130,3 +130,63 @@ Leyenda: `[ ]` pendiente · `[~]` en curso · `[x]` hecha
   - Ensayada de verdad: se aplicaron las recetas 1–3 sobre el repo (Arzobispo, Canciller, Saltamontes y el
     10×10 en `main_console.cpp`); compiló sin warnings, pasaron los 4 tests nuevos y la consola jugó en
     10×10. Después se revirtió: la guía no deja código en `src/`.
+
+## Fase 10 — Código sin comentarios
+
+> A partir de esta fase el código se escribe **sin comentarios**: los nombres de clases, métodos y
+> variables tienen que explicar el código solos. El porqué del diseño vive en `docs/`, no en el código.
+
+- [x] **10.1** Actualizar las reglas antes de tocar código.
+  - `CLAUDE.md` regla 6 pide un comentario `// Patrón: … — ver docs/arquitectura.md §…` en cada header:
+    reemplazarla por "el patrón se documenta en el catálogo de `docs/arquitectura.md` y en `docs/decisiones.md`".
+    Agregar en "Estilo de código": "Sin comentarios en el código".
+  - Verificar que cada patrón que hoy se nombra en un comentario de header figure en el catálogo de
+    `docs/arquitectura.md` con su clase; si falta alguno, agregarlo antes de borrar el comentario.
+- [ ] **10.2** Borrar los comentarios de `src/`, `app/` y `tests/` (`.hpp` y `.cpp`).
+  - Si un comentario explicaba algo que el código no dice, renombrar (método, variable, test) o extraer
+    una función con nombre en vez de perder la información. No cambiar comportamiento.
+  - Los `CMakeLists.txt` y `exportar.sh` pueden conservar comentarios de uso: son configuración, no código C++.
+  - Terminado si: `grep -rnE '//|/\*' src app tests --include='*.?pp'` no devuelve comentarios (solo
+    falsos positivos como URLs dentro de strings), compila sin warnings y `ctest` pasa.
+
+## Fase 11 — Piezas pixel art en la UI gráfica
+
+- [ ] **11.1** Sprites retro de las seis piezas estándar en `src/adapters/raylib/`.
+  - Cada pieza es un mapa de píxeles chico (p. ej. 16×16) definido en el adaptador y dibujado con
+    rectángulos o convertido a `Texture2D` al iniciar. Así no hay archivos de assets que copiar junto
+    al ejecutable (importante para la fase 13). Paleta limitada y contorno oscuro para que se lean
+    las piezas blancas y las negras sobre las dos casillas.
+  - El escalado tiene que ser entero y sin suavizado (`TEXTURE_FILTER_POINT`) para que el píxel se vea nítido.
+- [ ] **11.2** Catálogo de sprites abierto/cerrado.
+  - Los sprites se registran por `PieceTypeId` en el composition root (`main_raylib.cpp`), como las piezas
+    en `PieceRegistry`. Una pieza sin sprite registrado (p. ej. el Arzobispo de la guía de defensa) se
+    sigue dibujando con su letra. Prohibido un `switch` sobre el tipo de pieza.
+  - Tests sin ventana de la parte testeable (búsqueda en el catálogo, fallback a letra), igual que
+    `BoardLayout`/`BoardInteraction`.
+- [ ] **11.3** UML (`clases-aplicacion.puml`), entrada en `decisiones.md` y re-exportar los diagramas.
+  - Verificar que `git diff -- src/core` siga vacío: es un cambio solo del adaptador.
+  - Actualizar `docs/guia-defensa.md`: al agregar una pieza en vivo, el sprite es opcional.
+
+## Fase 12 — Pantalla de título
+
+- [ ] **12.1** Pantalla de título en la UI gráfica con dos botones: **Nueva partida** y **Salir**. Nada más.
+  - Nueva partida arranca una partida desde la posición inicial; Salir cierra la ventana.
+  - Al terminar una partida (mate o ahogado), poder volver a la pantalla de título.
+  - Mismo estilo retro que los sprites de la fase 11.
+  - La lógica de los botones (qué botón está bajo el mouse, qué acción dispara) va en una clase
+    testeable sin ventana, siguiendo el Humble Object de D-22.
+- [ ] **12.2** UML, `decisiones.md` (si se introduce un patrón, p. ej. State para las pantallas, también
+  el catálogo de `arquitectura.md`) y re-exportar los diagramas. `src/core/` no se toca.
+
+## Fase 13 — Release en GitHub
+
+- [ ] **13.1** Build de release: `cmake --build build --config Release` con los dos ejecutables
+  (`chess_console` y `chess_raylib`), compilados sin dependencias externas en tiempo de ejecución
+  (raylib estático; con MinGW, runtime estático).
+  - Probar los `.exe` en una carpeta limpia, fuera de `build/`, para confirmar que no les falta nada.
+- [ ] **13.2** Versión y notas: elegir el número (p. ej. `v1.0.0`), escribir las notas de la versión en
+  español (qué incluye, cómo jugar en cada UI, requisitos) y crear el tag anotado.
+- [ ] **13.3** Publicar en GitHub Releases con `gh release create`, adjuntando un `.zip` con los dos
+  ejecutables y un `LEEME.txt`.
+  - Pedir confirmación al usuario antes de hacer push del tag y publicar: es visible para terceros.
+  - Terminado si: el release aparece en GitHub y el `.zip` descargado funciona en otra máquina o carpeta.

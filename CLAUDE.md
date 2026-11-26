@@ -37,7 +37,7 @@ Lo que más se evalúa (ver consigna §9):
 ## Convenciones de idioma
 
 - **Código en inglés**: clases, métodos, variables, archivos (`Board`, `MovementRule`, `legalMovesFrom`).
-- **Documentación en español**: comentarios de diseño, docs, diagramas (títulos/notas), mensajes de commit.
+- **Documentación en español**: docs, diagramas (títulos/notas), mensajes de commit.
 
 ## Estructura del repositorio
 
@@ -69,7 +69,7 @@ docs/                    Documentación y diagramas.
    clase sin tocar el diagrama está incompleto.
 6. **Cada patrón se documenta.** Al introducir un patrón: entrada en el catálogo de
    `docs/arquitectura.md` y entrada en `docs/decisiones.md` (qué / por qué / cuándo romperlo).
-   En el código, un comentario breve en el header de la clase: `// Patrón: Strategy — ver docs/arquitectura.md §3.2`.
+   Se documenta ahí y no en el código: los headers no llevan comentarios (D-25).
 7. **Inyección de dependencias manual.** Sin singletons, sin estado global. Las dependencias entran
    por constructor; se arman en el composition root (`app/`).
 8. **TDD en el núcleo.** Test primero (rojo), implementación mínima (verde), refactor.
@@ -86,6 +86,9 @@ docs/                    Documentación y diagramas.
   `std::optional` para "puede no haber". Sin `new`/`delete` crudos.
 - Interfaces = clases abstractas puras con destructor virtual.
 - Preferir value objects inmutables (`Position`, `Move`).
+- **Sin comentarios en el código** (`src/`, `app/`, `tests/`). Los nombres de clases, métodos, variables
+  y tests explican el código; si hace falta un comentario, renombrar o extraer una función con nombre.
+  El porqué del diseño vive en `docs/`. Los `CMakeLists.txt` y scripts pueden tener comentarios de uso.
 
 ## Comandos
 
