@@ -35,7 +35,6 @@ TEST_F(MoveGeneratorTest, CollectsTheMovesOfThePieceRules) {
 }
 
 TEST_F(MoveGeneratorTest, JoinsEveryRuleOfACompositePiece) {
-    // Arzobispo = alfil + caballo: el generador no pregunta el tipo, recorre las reglas.
     registry_.add(makeDefinition("archbishop", 'A',
                                  rulesOf(std::make_unique<SlidingRule>(Directions::diagonals()),
                                          std::make_unique<LeaperRule>(Directions::knightJumps()))));

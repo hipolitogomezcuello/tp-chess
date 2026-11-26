@@ -16,4 +16,4 @@ Piece Piece::withMoved() const {
     return Piece(definition_, color_, true);
 }
 
-}  // namespace chess::domain
+}

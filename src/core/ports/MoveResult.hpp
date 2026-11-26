@@ -8,8 +8,6 @@
 
 namespace chess::ports {
 
-// Value object: lo que responde GameService::makeMove. O la jugada que se hizo, o el motivo
-// del rechazo; nunca las dos. Una jugada inválida no lanza excepciones (D-05).
 class MoveResult {
 public:
     static MoveResult success(domain::Move move) { return MoveResult(std::move(move), std::nullopt); }
@@ -27,4 +25,4 @@ private:
     std::optional<MoveError> error_;
 };
 
-}  // namespace chess::ports
+}

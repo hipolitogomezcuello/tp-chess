@@ -31,7 +31,7 @@ protected:
     Board createBoard() {
         StandardPieces::registerAll(registry_);
         const StandardStartingPosition standard;
-        const StartingPositionProvider& provider = standard;  // se usa a través de la interfaz
+        const StartingPositionProvider& provider = standard;
         return provider.createInitialBoard(factory_);
     }
 
@@ -48,7 +48,7 @@ protected:
     Board board_;
 };
 
-}  // namespace
+}
 
 TEST_F(StandardStartingPositionTest, IsAnEightByEightBoard) {
     EXPECT_EQ(board_.dimensions(), BoardDimensions(8, 8));

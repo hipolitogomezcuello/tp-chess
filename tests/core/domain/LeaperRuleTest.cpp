@@ -69,7 +69,6 @@ TEST_F(LeaperRuleTest, UsesTheRealBoardSizeNotEightByEight) {
     const LeaperRule knight(Directions::knightJumps());
     const GameState state(builder(BoardDimensions(10, 10)).place("i9", kPiece, Color::White).build());
 
-    // En 8×8 desde i9 no habría nada; en 10×10 hay g10, g8, h7, j7.
     EXPECT_EQ(destinations(movesOf(knight, state, "i9")), squares({"g10", "g8", "h7", "j7"}));
 }
 

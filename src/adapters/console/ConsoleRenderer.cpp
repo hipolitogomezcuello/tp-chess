@@ -26,17 +26,16 @@ char squareSymbol(const domain::Board& board, Position position) {
     return static_cast<char>(piece->color() == Color::White ? std::toupper(symbol) : std::tolower(symbol));
 }
 
-}  // namespace
+}
 
 void ConsoleRenderer::render(const domain::GameState& state) {
     const domain::Board& board = state.board();
     const int files = board.dimensions().files();
     const int ranks = board.dimensions().ranks();
-    // Ancho de la columna de números de fila: 1 para 8×8, 2 para 10×10.
     const int labelWidth = static_cast<int>(std::to_string(ranks).size());
 
     out_ << '\n';
-    for (int rank = ranks - 1; rank >= 0; --rank) {  // las negras arriba
+    for (int rank = ranks - 1; rank >= 0; --rank) {
         out_ << std::setw(labelWidth) << rank + 1;
         for (int file = 0; file < files; ++file) {
             out_ << ' ' << squareSymbol(board, Position(file, rank));
@@ -56,7 +55,6 @@ void ConsoleRenderer::onMoveMade(const domain::Move& move, const domain::GameSta
     out_ << "\nJugada: " << AlgebraicNotation::format(move.from()) << separator
          << AlgebraicNotation::format(move.to());
     if (move.promotion()) {
-        // La pieza nueva ya está en el destino: se muestra su símbolo, sin mirar el tipo.
         out_ << '=' << static_cast<char>(std::toupper(static_cast<unsigned char>(
                            state.board().pieceAt(move.to())->symbol())));
     }
@@ -86,4 +84,4 @@ void ConsoleRenderer::onUndoRedo(const domain::GameState& state) {
     render(state);
 }
 
-}  // namespace chess::adapters::console
+}

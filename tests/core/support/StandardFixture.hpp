@@ -1,6 +1,5 @@
 #pragma once
 
-// Fixture con las piezas clásicas registradas, para los tests del motor de reglas.
 #include <gtest/gtest.h>
 
 #include "domain/BoardDimensions.hpp"
@@ -36,4 +35,4 @@ protected:
     domain::PieceFactory factory_;
 };
 
-}  // namespace chess::testing
+}

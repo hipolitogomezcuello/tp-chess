@@ -5,8 +5,16 @@
 
 namespace chess::domain {
 
+namespace {
+
+Position squareBetween(Position from, Position to) {
+    return Position((from.file() + to.file()) / 2, (from.rank() + to.rank()) / 2);
+}
+
+}
+
 GameState MoveApplier::apply(const GameState& state, const Move& move) const {
-    Board board = state.board();  // copia: el estado original queda intacto
+    Board board = state.board();
     board.move(move.from(), move.to());
     const Piece moved = *board.pieceAt(move.to());
     if (move.promotion()) {
@@ -24,11 +32,9 @@ GameState MoveApplier::apply(const GameState& state, const Move& move) const {
 
     std::optional<Position> enPassantTarget;
     if (move.kind() == MoveKind::DoublePawnPush) {
-        // La casilla del medio entre el origen y el destino.
-        enPassantTarget = Position((move.from().file() + move.to().file()) / 2,
-                                   (move.from().rank() + move.to().rank()) / 2);
+        enPassantTarget = squareBetween(move.from(), move.to());
     }
     return GameState(std::move(board), opposite(state.sideToMove()), enPassantTarget);
 }
 
-}  // namespace chess::domain
+}

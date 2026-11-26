@@ -23,4 +23,4 @@ Move Move::withPromotion(PieceTypeId type) const {
     return copy;
 }
 
-}  // namespace chess::domain
+}

@@ -1,7 +1,5 @@
 #pragma once
 
-// Observer de prueba: registra los eventos que recibe para que los tests los inspeccionen
-// (docs/arquitectura.md §8). No dibuja nada: reemplaza a la UI en los tests del núcleo.
 #include <vector>
 
 #include "domain/Color.hpp"
@@ -12,7 +10,6 @@
 
 namespace chess::testing {
 
-// Un aviso de fin de partida: el resultado y el bando que quedó sin jugadas.
 struct GameOverEvent {
     domain::GameStatus result;
     domain::Color sideToMove;
@@ -40,4 +37,4 @@ public:
     std::vector<domain::GameState> statesAfterUndoRedo;
 };
 
-}  // namespace chess::testing
+}

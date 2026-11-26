@@ -2,8 +2,6 @@
 
 namespace chess::domain {
 
-// Value object: desplazamiento (dFile, dRank) sobre el tablero.
-// Se usa para las direcciones de las piezas deslizantes y los saltos fijos.
 class Offset {
 public:
     constexpr Offset(int dFile, int dRank) : dFile_(dFile), dRank_(dRank) {}
@@ -21,4 +19,4 @@ private:
     int dRank_;
 };
 
-}  // namespace chess::domain
+}

@@ -16,7 +16,6 @@ using chess::testing::squares;
 
 namespace {
 
-// La interacción solo conoce el puerto GameService; acá se le da el ChessGame real.
 class BoardInteractionTest : public chess::testing::StandardPiecesFixture {
 protected:
     GameState aboutToPromote() const {
@@ -32,7 +31,7 @@ protected:
     BoardInteraction interaction_{game_};
 };
 
-}  // namespace
+}
 
 TEST_F(BoardInteractionTest, StartsWithNothingSelected) {
     EXPECT_FALSE(interaction_.selected().has_value());
@@ -89,7 +88,7 @@ TEST_F(BoardInteractionTest, APromotionWaitsForThePlayerToChooseThePiece) {
 
     EXPECT_TRUE(interaction.awaitingPromotion());
     EXPECT_EQ(interaction.promotionChoices().size(), 4u);
-    EXPECT_EQ(game.state().board().pieceAt(sq("c7"))->type(), kPawn);  // todavía no se movió
+    EXPECT_EQ(game.state().board().pieceAt(sq("c7"))->type(), kPawn);
 
     interaction.choosePromotion(kKnight);
 

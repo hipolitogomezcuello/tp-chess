@@ -11,10 +11,9 @@ using chess::testing::sq;
 
 namespace {
 
-// Tablero de 8×8 dibujado en un cuadrado de 400 px que empieza en (20, 30): casillas de 50 px.
 const BoardLayout kLayout(BoardDimensions(), 20, 30, 400);
 
-}  // namespace
+}
 
 TEST(BoardLayoutTest, SquaresSplitTheAvailableSpaceByTheLargestSide) {
     EXPECT_EQ(kLayout.squareSize(), 50);

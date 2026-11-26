@@ -85,7 +85,6 @@ TEST_F(MoveApplierTest, PromotionCanAlsoCapture) {
 }
 
 TEST_F(MoveApplierTest, PromotionWithoutAChosenPieceLeavesThePawn) {
-    // LegalMoveFilter prueba la jugada antes de que el jugador elija: el peón llega igual a la casilla.
     const MoveApplier applier(factory_);
     const GameState state(builder().placeMoved("e7", kPawn, Color::White).build());
 

@@ -31,4 +31,4 @@ bool MoveHistory::redo(domain::GameState& state) {
     return true;
 }
 
-}  // namespace chess::application
+}

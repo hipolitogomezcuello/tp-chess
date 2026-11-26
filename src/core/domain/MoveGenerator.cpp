@@ -27,4 +27,4 @@ std::vector<Move> MoveGenerator::allMoves(const GameState& state) const {
     return result;
 }
 
-}  // namespace chess::domain
+}

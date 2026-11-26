@@ -1,9 +1,5 @@
 #pragma once
 
-// Piezas inventadas para los tests de extensibilidad (ensayo de la defensa, docs/arquitectura.md §9).
-// Se arman SOLO componiendo reglas que ya existen y se registran desde afuera: ninguna clase del
-// núcleo se modifica para agregarlas.
-//   Arzobispo (A) = Alfil + Caballo        Canciller (C) = Torre + Caballo
 #include <memory>
 
 #include "domain/Directions.hpp"
@@ -37,4 +33,4 @@ inline void registerInventedPieces(domain::PieceRegistry& registry) {
                                 promotable));
 }
 
-}  // namespace chess::testing
+}

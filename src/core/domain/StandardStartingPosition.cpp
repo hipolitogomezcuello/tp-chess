@@ -7,7 +7,7 @@
 namespace chess::domain {
 
 Board StandardStartingPosition::createInitialBoard(const PieceFactory& factory) const {
-    const BoardDimensions dimensions;  // 8×8
+    const BoardDimensions dimensions;
     const std::vector<PieceTypeId> backRank{StandardPieces::kRook,  StandardPieces::kKnight, StandardPieces::kBishop,
                                             StandardPieces::kQueen, StandardPieces::kKing,   StandardPieces::kBishop,
                                             StandardPieces::kKnight, StandardPieces::kRook};
@@ -25,4 +25,4 @@ Board StandardStartingPosition::createInitialBoard(const PieceFactory& factory) 
     return board;
 }
 
-}  // namespace chess::domain
+}

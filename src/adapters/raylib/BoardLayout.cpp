@@ -17,9 +17,13 @@ BoardLayout::Point BoardLayout::topLeftOf(Position position) const {
     return {originX_ + position.file() * squareSize_, originY_ + rowFromTop * squareSize_};
 }
 
+bool BoardLayout::isLeftOfOrAboveOrigin(int x, int y) const {
+    return x < originX_ || y < originY_;
+}
+
 std::optional<Position> BoardLayout::squareAt(int x, int y) const {
-    if (x < originX_ || y < originY_) {
-        return std::nullopt;  // antes de dividir: la división entera redondea hacia cero
+    if (isLeftOfOrAboveOrigin(x, y)) {
+        return std::nullopt;
     }
     const int file = (x - originX_) / squareSize_;
     const int rowFromTop = (y - originY_) / squareSize_;
@@ -30,4 +34,4 @@ std::optional<Position> BoardLayout::squareAt(int x, int y) const {
     return position;
 }
 
-}  // namespace chess::adapters::raylib
+}

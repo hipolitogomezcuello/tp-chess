@@ -1,10 +1,9 @@
-// Extensibilidad 1: una pieza nueva sin modificar ninguna clase (consigna §9, arquitectura §9).
-// El Arzobispo (Alfil + Caballo) se registra desde el test componiendo reglas existentes. Todo lo
-// demás (generación, jaque, mate, promoción) funciona porque el motor nunca pregunta por el tipo.
 #include <algorithm>
+#include <vector>
 
 #include "application/ChessGame.hpp"
 #include "domain/GameStatus.hpp"
+#include "domain/Position.hpp"
 #include "domain/RulesEngine.hpp"
 #include "ports/MoveResult.hpp"
 #include "support/InventedPieces.hpp"
@@ -15,9 +14,11 @@ using chess::application::ChessGame;
 using chess::domain::Color;
 using chess::domain::GameState;
 using chess::domain::GameStatus;
+using chess::domain::Position;
 using chess::domain::RulesEngine;
 using chess::testing::destinations;
 using chess::testing::kArchbishop;
+using chess::testing::sorted;
 using chess::testing::sq;
 using chess::testing::squares;
 
@@ -30,7 +31,7 @@ protected:
     RulesEngine rules_{registry_};
 };
 
-}  // namespace
+}
 
 TEST_F(InventedPieceTest, TheArchbishopMovesLikeABishopPlusAKnight) {
     const GameState state(builder()
@@ -39,11 +40,12 @@ TEST_F(InventedPieceTest, TheArchbishopMovesLikeABishopPlusAKnight) {
                               .place("a8", kKing, Color::Black)
                               .build());
 
-    EXPECT_EQ(destinations(rules_.legalMoves(state, sq("d4"))),
-              squares({// diagonales
-                       "a1", "b2", "c3", "e5", "f6", "g7", "h8", "a7", "b6", "c5", "e3", "f2", "g1",
-                       // saltos de caballo
-                       "b3", "b5", "c2", "c6", "e2", "e6", "f3", "f5"}));
+    const auto diagonalTargets = squares({"a1", "b2", "c3", "e5", "f6", "g7", "h8", "a7", "b6", "c5", "e3", "f2", "g1"});
+    const auto knightJumpTargets = squares({"b3", "b5", "c2", "c6", "e2", "e6", "f3", "f5"});
+    std::vector<Position> expected = diagonalTargets;
+    expected.insert(expected.end(), knightJumpTargets.begin(), knightJumpTargets.end());
+
+    EXPECT_EQ(destinations(rules_.legalMoves(state, sq("d4"))), sorted(expected));
 }
 
 TEST_F(InventedPieceTest, TheArchbishopGivesCheckWithItsKnightJump) {
@@ -58,7 +60,6 @@ TEST_F(InventedPieceTest, TheArchbishopGivesCheckWithItsKnightJump) {
 }
 
 TEST_F(InventedPieceTest, TheEnemyKingCannotStepOntoSquaresTheArchbishopAttacks) {
-    // Desde f6 da jaque a h7 con el salto, y además cubre g8 (salto) y g7/h8 (diagonal).
     const GameState state(builder()
                               .place("f6", kArchbishop, Color::White)
                               .place("a1", kKing, Color::White)
@@ -71,7 +72,6 @@ TEST_F(InventedPieceTest, TheEnemyKingCannotStepOntoSquaresTheArchbishopAttacks)
 }
 
 TEST_F(InventedPieceTest, ItCanDeliverCheckmate) {
-    // El Arzobispo en f7 da jaque con su salto a h8 y cubre g8 en diagonal; el rey blanco cubre g7 y h7.
     const GameState state(builder()
                               .place("f7", kArchbishop, Color::White)
                               .place("g6", kKing, Color::White)
@@ -100,7 +100,6 @@ TEST_F(InventedPieceTest, PromotionChoicesIncludeTheInventedPieces) {
 
     const auto choices = game.promotionChoices();
 
-    // Dama, torre, alfil, caballo + Arzobispo y Canciller.
     EXPECT_EQ(choices.size(), 6u);
     const bool hasArchbishop = std::any_of(choices.begin(), choices.end(),
                                            [](const auto& piece) { return piece.type() == kArchbishop; });

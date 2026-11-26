@@ -142,7 +142,7 @@ Leyenda: `[ ]` pendiente · `[~]` en curso · `[x]` hecha
     Agregar en "Estilo de código": "Sin comentarios en el código".
   - Verificar que cada patrón que hoy se nombra en un comentario de header figure en el catálogo de
     `docs/arquitectura.md` con su clase; si falta alguno, agregarlo antes de borrar el comentario.
-- [ ] **10.2** Borrar los comentarios de `src/`, `app/` y `tests/` (`.hpp` y `.cpp`).
+- [x] **10.2** Borrar los comentarios de `src/`, `app/` y `tests/` (`.hpp` y `.cpp`).
   - Si un comentario explicaba algo que el código no dice, renombrar (método, variable, test) o extraer
     una función con nombre en vez de perder la información. No cambiar comportamiento.
   - Los `CMakeLists.txt` y `exportar.sh` pueden conservar comentarios de uso: son configuración, no código C++.

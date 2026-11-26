@@ -16,27 +16,21 @@ enum class MoveKind {
     Promotion,
 };
 
-// Value object inmutable: una jugada de `from` a `to`.
-// En una Promotion la regla NO elige la pieza: la elige el jugador con withPromotion (D-08).
-// Un Castling lleva además la jugada de la torre (rookFrom → rookTo) y un EnPassant la casilla del
-// peón capturado, que no es el destino. Se crean con Move::castling y Move::enPassant.
 class Move {
 public:
     Move(Position from, Position to, MoveKind kind = MoveKind::Normal) : from_(from), to_(to), kind_(kind) {}
 
-    // El rey va de kingFrom a kingTo y la pieza canCastleWith (la torre) de rookFrom a rookTo.
     static Move castling(Position kingFrom, Position kingTo, Position rookFrom, Position rookTo);
 
-    // El peón va de from a to (vacía) y captura al peón que está en capturedSquare.
     static Move enPassant(Position from, Position to, Position capturedSquare);
 
     Position from() const { return from_; }
     Position to() const { return to_; }
     MoveKind kind() const { return kind_; }
     const std::optional<PieceTypeId>& promotion() const { return promotion_; }
-    std::optional<Position> rookFrom() const { return rookFrom_; }  // solo en Castling
-    std::optional<Position> rookTo() const { return rookTo_; }      // solo en Castling
-    std::optional<Position> capturedSquare() const { return capturedSquare_; }  // solo en EnPassant
+    std::optional<Position> rookFrom() const { return rookFrom_; }
+    std::optional<Position> rookTo() const { return rookTo_; }
+    std::optional<Position> capturedSquare() const { return capturedSquare_; }
 
     Move withPromotion(PieceTypeId type) const;
 
@@ -56,4 +50,4 @@ private:
     std::optional<Position> capturedSquare_;
 };
 
-}  // namespace chess::domain
+}

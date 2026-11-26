@@ -35,4 +35,4 @@ std::vector<PieceTypeId> PieceRegistry::promotableTypes() const {
     return result;
 }
 
-}  // namespace chess::domain
+}

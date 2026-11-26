@@ -28,7 +28,7 @@ protected:
     ConsoleRenderer renderer_{out_};
 };
 
-}  // namespace
+}
 
 TEST_F(ConsoleRendererTest, DrawsTheInitialPositionWithWhiteInUppercase) {
     renderer_.render(initialState());

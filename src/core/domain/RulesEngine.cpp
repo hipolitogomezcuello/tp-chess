@@ -34,4 +34,4 @@ std::vector<Piece> RulesEngine::promotionChoices(Color color) const {
     return result;
 }
 
-}  // namespace chess::domain
+}

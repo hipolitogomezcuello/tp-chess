@@ -20,15 +20,8 @@
 
 namespace chess::application {
 
-// Caso de uso "jugar una partida": implementa el puerto de entrada GameService.
-// Guarda el GameState actual, valida el turno, le pide al RulesEngine (Facade) las jugadas legales
-// y avisa a los observers (Observer, §3.9). Las reglas de ajedrez no viven acá: viven en el dominio.
-// makeMove delega en la fase actual (State, §3.7), que se deriva del GameStatus (D-10).
-// Cada jugada se ejecuta como un MoveCommand y se anota en el MoveHistory (Command + Memento, §3.8).
-// Dependencias por constructor (§3.10): el RulesEngine lo crea y posee el composition root.
 class ChessGame : public ports::GameService {
 public:
-    // Guarda una referencia al motor: debe vivir más que el juego.
     ChessGame(const domain::RulesEngine& rules, domain::GameState initialState);
 
     ports::MoveResult makeMove(domain::Position from, domain::Position to,
@@ -41,18 +34,13 @@ public:
     bool redo() override;
     void addObserver(ports::GameObserver& observer) override;
 
-    // Valida y hace la jugada sin mirar la fase. La llama InProgressPhase; los adaptadores no la
-    // ven porque solo conocen el puerto GameService.
     ports::MoveResult performMove(domain::Position from, domain::Position to,
                                   const std::optional<domain::PieceTypeId>& promotion);
 
 private:
-    // ¿Hay en `from` una pieza del bando que mueve? (fuera del tablero cuenta como vacía)
     bool hasPieceOfSideToMove(domain::Position from) const;
-    // Completa la jugada elegida con la pieza de la promoción, o devuelve por qué no se puede.
     ports::MoveResult withPromotionChoice(const domain::Move& move,
                                           const std::optional<domain::PieceTypeId>& promotion) const;
-    // Elige la fase según el GameStatus del estado actual (D-10).
     void updatePhase();
     void notifyAfterMove(const domain::Move& move);
     void notifyUndoRedo();
@@ -64,4 +52,4 @@ private:
     std::vector<std::reference_wrapper<ports::GameObserver>> observers_;
 };
 
-}  // namespace chess::application
+}

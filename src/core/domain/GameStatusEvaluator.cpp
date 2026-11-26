@@ -14,4 +14,4 @@ bool GameStatusEvaluator::hasLegalMoves(const GameState& state) const {
     return !filter_.filter(state, generator_.allMoves(state)).empty();
 }
 
-}  // namespace chess::domain
+}

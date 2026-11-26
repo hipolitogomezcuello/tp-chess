@@ -1,7 +1,3 @@
-// Extensibilidad 2: un tablero de 10×10 sin modificar ninguna clase (consigna §9, arquitectura §9).
-// Lo único nuevo es TenByTenStartingPosition (otra Strategy de disposición inicial). Las reglas
-// usan BoardDimensions para los bordes, la última fila y el enroque, y hasMoved para el doble
-// avance (D-09), así que la partida entera funciona igual.
 #include "application/ChessGame.hpp"
 #include "domain/BoardDimensions.hpp"
 #include "domain/GameStatus.hpp"
@@ -44,7 +40,7 @@ protected:
     RulesEngine rules_{registry_};
 };
 
-}  // namespace
+}
 
 TEST_F(LargeBoardTest, TheInitialPositionHasFortyPiecesInTheirPlaces) {
     const GameState state = tenByTen();
@@ -75,7 +71,6 @@ TEST_F(LargeBoardTest, TheGameStartsInProgressAndPawnsCanAdvanceTwo) {
 TEST_F(LargeBoardTest, InventedPiecesMoveFromTheStartingPosition) {
     ChessGame game(rules_, tenByTen());
 
-    // El Canciller de h1 salta como caballo por encima de los peones.
     EXPECT_EQ(destinations(game.legalMovesFrom(sq("h1"))), squares({"g3", "i3"}));
     EXPECT_EQ(destinations(game.legalMovesFrom(sq("c1"))), squares({"b3", "d3"}));
 }
@@ -101,7 +96,7 @@ TEST_F(LargeBoardTest, PawnsPromoteOnTheTenthRank) {
                                          .placeMoved("e8", kPawn, Color::White)
                                          .build()));
 
-    EXPECT_TRUE(move(game, "e8", "e9").ok());  // la fila 9 todavía no es la última
+    EXPECT_TRUE(move(game, "e8", "e9").ok());
     move(game, "j10", "i10");
 
     ASSERT_TRUE(game.makeMove(sq("e9"), sq("e10"), kChancellor).ok());
@@ -109,7 +104,6 @@ TEST_F(LargeBoardTest, PawnsPromoteOnTheTenthRank) {
 }
 
 TEST_F(LargeBoardTest, CheckmateIsDetectedOnTheLargerBoard) {
-    // Mate de la escalera: la torre de a9 corta la fila 9 y la de b1 sube a dar mate en la 10.
     ChessGame game(rules_, GameState(builder10()
                                          .place("a1", kKing, Color::White)
                                          .place("a9", kRook, Color::White)

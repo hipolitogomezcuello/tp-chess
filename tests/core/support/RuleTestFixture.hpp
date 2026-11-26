@@ -1,8 +1,5 @@
 #pragma once
 
-// Fixture común a los tests de reglas: un registro con piezas "de prueba" sin reglas propias.
-// La regla bajo test se instancia aparte y se evalúa sobre un MoveContext; así se prueba la
-// regla aislada, no la definición de la pieza.
 #include <gtest/gtest.h>
 
 #include <vector>
@@ -44,4 +41,4 @@ protected:
     domain::PieceFactory factory_;
 };
 
-}  // namespace chess::testing
+}

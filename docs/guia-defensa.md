@@ -47,13 +47,12 @@ offsets), Rey sin enroque (solo `LeaperRule(Directions::all())`).
 En `app/main_console.cpp` (y/o `app/main_raylib.cpp`), después de `StandardPieces::registerAll(registry);`:
 
 ```cpp
-// Pieza nueva: Arzobispo = Alfil + Caballo. Solo se compone y se registra (D-02, D-03).
 {
     std::vector<std::unique_ptr<domain::MovementRule>> rules;
     rules.push_back(std::make_unique<domain::SlidingRule>(domain::Directions::diagonals()));
     rules.push_back(std::make_unique<domain::LeaperRule>(domain::Directions::knightJumps()));
     domain::PieceTraits traits;
-    traits.isPromotable = true;   // un peón puede promover a ella (D-08)
+    traits.isPromotable = true;
     registry.add(std::make_shared<const domain::PieceDefinition>(
         domain::PieceTypeId("archbishop"), 'A', std::move(rules), traits));
 }
@@ -120,9 +119,9 @@ TEST_F(HopperRuleTest, LandsRightBehindTheFirstPieceInEachLine) {
     const HopperRule hopper(Directions::all());
     const GameState state(builder()
                               .place("d4", kPiece, Color::White)
-                              .place("d6", kPiece, Color::White)   // valla propia: salta a d7
-                              .place("f4", kPiece, Color::Black)   // valla rival: salta a g4
-                              .place("h4", kPiece, Color::Black)   // no es la primera: no importa
+                              .place("d6", kPiece, Color::White)
+                              .place("f4", kPiece, Color::Black)
+                              .place("h4", kPiece, Color::Black)
                               .build());
 
     EXPECT_EQ(destinations(movesOf(hopper, state, "d4")), squares({"d7", "g4"}));
@@ -133,15 +132,14 @@ TEST_F(HopperRuleTest, CapturesAnEnemyBehindTheHurdleButNotAnOwnPiece) {
     const GameState state(builder()
                               .place("d4", kPiece, Color::White)
                               .place("d5", kPiece, Color::White)
-                              .place("d6", kPiece, Color::Black)   // detrás de la valla: captura
+                              .place("d6", kPiece, Color::Black)
                               .place("e5", kPiece, Color::Black)
-                              .place("f6", kPiece, Color::White)   // detrás de la valla: propia
+                              .place("f6", kPiece, Color::White)
                               .build());
 
     const auto moves = movesOf(hopper, state, "d4");
     EXPECT_EQ(destinations(moves), squares({"d6"}));
     EXPECT_EQ(findMoveTo(moves, sq("d6"))->kind(), MoveKind::Capture);
-    // f6 no es una jugada, pero sí una casilla atacada (defendida, D-15).
     EXPECT_EQ(attacksOf(hopper, state, "d4"), squares({"d6", "f6"}));
 }
 
@@ -155,6 +153,11 @@ TEST_F(HopperRuleTest, CannotJumpOffTheBoard) {
     EXPECT_TRUE(movesOf(hopper, state, "a1").empty());
 }
 ```
+
+Cómo leer las posiciones: en el segundo test, d6 (propia) y f4 (rival) son vallas, así que el
+Saltamontes cae en d7 y g4; h4 no cuenta porque no es la primera pieza de la fila. En el tercero, detrás
+de la valla d5 hay una pieza rival (d6: captura) y detrás de e5 una propia (f6: no es jugada, pero sí
+casilla atacada, porque la defiende — D-15). El código no lleva comentarios (D-25): esto se explica acá.
 
 ### 2.2 La regla
 
@@ -184,7 +187,7 @@ private:
     std::vector<Offset> directions_;
 };
 
-}  // namespace chess::domain
+}
 ```
 
 `src/core/domain/HopperRule.cpp` (y agregarlo a `target_sources` en `src/core/CMakeLists.txt`):
@@ -202,7 +205,6 @@ namespace chess::domain {
 HopperRule::HopperRule(std::vector<Offset> directions) : directions_(std::move(directions)) {}
 
 std::vector<Move> HopperRule::candidateMoves(const MoveContext& context) const {
-    // Igual que SlidingRule y LeaperRule: vacía → Normal, enemiga → Capture, propia → no (D-15).
     return movesOntoReachableSquares(context, attackedSquares(context));
 }
 
@@ -212,10 +214,10 @@ std::vector<Position> HopperRule::attackedSquares(const MoveContext& context) co
     for (const Offset& direction : directions_) {
         Position square = context.from() + direction;
         while (board.dimensions().contains(square) && board.isEmpty(square)) {
-            square = square + direction;   // busca la valla
+            square = square + direction;
         }
         if (!board.dimensions().contains(square)) {
-            continue;                      // no hay pieza que saltar en esta dirección
+            continue;
         }
         const Position landing = square + direction;
         if (board.dimensions().contains(landing)) {
@@ -225,7 +227,7 @@ std::vector<Position> HopperRule::attackedSquares(const MoveContext& context) co
     return landings;
 }
 
-}  // namespace chess::domain
+}
 ```
 
 ### 2.3 Registrar la pieza
@@ -284,7 +286,7 @@ public:
     Board createInitialBoard(const PieceFactory& factory) const override;
 };
 
-}  // namespace chess::domain
+}
 ```
 
 `src/core/domain/TenByTenStartingPosition.cpp` (y agregarlo a `src/core/CMakeLists.txt`):
@@ -317,13 +319,14 @@ Board TenByTenStartingPosition::createInitialBoard(const PieceFactory& factory) 
     return board;
 }
 
-}  // namespace chess::domain
+}
 ```
 
-En el composition root, registrar las dos piezas (sección 1) y cambiar **una línea**:
+En el composition root, registrar las dos piezas (sección 1) y cambiar **una línea**: donde decía
+`StandardStartingPosition`, poner la disposición nueva.
 
 ```cpp
-const domain::TenByTenStartingPosition startingPosition;   // antes: StandardStartingPosition
+const domain::TenByTenStartingPosition startingPosition;
 ```
 
 Para un tablero de otro tamaño **sin piezas nuevas** (por ejemplo, 8×10 con las piezas clásicas y
@@ -364,7 +367,6 @@ puede convivir con la consola o con raylib a la vez.
 
 namespace chess::adapters::log {
 
-// Adaptador de salida: escribe cada evento de la partida en un stream.
 class GameLogger : public ports::GameObserver {
 public:
     explicit GameLogger(std::ostream& out) : out_(out) {}
@@ -378,7 +380,7 @@ private:
     std::ostream& out_;
 };
 
-}  // namespace chess::adapters::log
+}
 ```
 
 Pasos:

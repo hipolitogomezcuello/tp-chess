@@ -13,12 +13,11 @@ std::vector<Position> SlidingRule::attackedSquares(const MoveContext& context) c
     const Board& board = context.board();
     std::vector<Position> result;
     for (const Offset direction : directions_) {
-        // Los bordes salen de las dimensiones reales del tablero (D-09).
         for (Position square = context.from() + direction; board.dimensions().contains(square);
              square = square + direction) {
             result.push_back(square);
             if (!board.isEmpty(square)) {
-                break;  // la primera pieza (de cualquier color) corta la línea
+                break;
             }
         }
     }
@@ -29,4 +28,4 @@ std::vector<Move> SlidingRule::candidateMoves(const MoveContext& context) const 
     return movesOntoReachableSquares(context, attackedSquares(context));
 }
 
-}  // namespace chess::domain
+}

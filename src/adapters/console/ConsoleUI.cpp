@@ -32,7 +32,7 @@ const char* colorName(domain::Color color) {
     return color == domain::Color::White ? "blancas" : "negras";
 }
 
-}  // namespace
+}
 
 void ConsoleUI::run() {
     out_ << "Escribí una jugada como \"e2 e4\", o \"help\" para ver los comandos.\n";
@@ -52,7 +52,6 @@ bool ConsoleUI::execute(const std::vector<std::string>& words) {
     if (words.size() == 1 && words[0] == "help") {
         showHelp();
     } else if (words.size() == 1 && words[0] == "undo") {
-        // Si se pudo, el ConsoleRenderer ya dibujó el tablero restaurado (onUndoRedo).
         out_ << (game_.undo() ? "Se deshizo la última jugada.\n" : "No hay jugadas para deshacer.\n");
     } else if (words.size() == 1 && words[0] == "redo") {
         out_ << (game_.redo() ? "Se rehízo la jugada.\n" : "No hay jugadas para rehacer.\n");
@@ -86,7 +85,6 @@ void ConsoleUI::makeMove(const std::string& fromText, const std::string& toText,
         }
     }
 
-    // Si la jugada es válida, el ConsoleRenderer ya dibujó el tablero (onMoveMade).
     const ports::MoveResult result = game_.makeMove(*from, *to, promotion);
     if (!result.ok()) {
         reportError(result, fromText, toText);
@@ -94,8 +92,6 @@ void ConsoleUI::makeMove(const std::string& fromText, const std::string& toText,
 }
 
 std::optional<domain::PieceTypeId> ConsoleUI::findPromotionChoice(const std::string& text) const {
-    // Sin switch sobre tipos de pieza: se busca entre las que ofrece el juego, así una pieza nueva
-    // promovible (el Arzobispo) se elige con su letra sin tocar la consola.
     for (const domain::Piece& piece : game_.promotionChoices()) {
         const bool sameSymbol =
             text.size() == 1 && std::tolower(static_cast<unsigned char>(piece.symbol())) == text[0];
@@ -130,7 +126,6 @@ void ConsoleUI::showMoves(const std::string& squareText) {
         out_ << "No hay jugadas desde " << squareText << ".\n";
         return;
     }
-    // Ordenadas por columna y fila ("a3 c3"; "a2" antes que "a10"), no en el orden de las reglas.
     std::vector<Position> destinations;
     for (const auto& move : moves) {
         destinations.push_back(move.to());
@@ -156,7 +151,6 @@ void ConsoleUI::showHelp() {
 
 void ConsoleUI::reportError(const ports::MoveResult& result, const std::string& fromText,
                             const std::string& toText) {
-    // Traducir el motivo a texto es cosa de la presentación: el núcleo solo da el MoveError.
     switch (*result.error()) {
         case MoveError::NoPieceAtOrigin:
             out_ << "No hay ninguna pieza en " << fromText << ".\n";
@@ -175,11 +169,10 @@ void ConsoleUI::reportError(const ports::MoveResult& result, const std::string& 
                  << " q. Opciones: " << promotionChoicesText() << ".\n";
             break;
         case MoveError::InvalidPromotion:
-            // La consola solo manda piezas de promotionChoices: si igual falla, la jugada no promueve.
             out_ << "Esa jugada no es una promoción: escribila sin la pieza (" << fromText << ' ' << toText
                  << ").\n";
             break;
     }
 }
 
-}  // namespace chess::adapters::console
+}

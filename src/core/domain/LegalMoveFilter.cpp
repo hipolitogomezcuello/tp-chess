@@ -16,7 +16,6 @@ std::vector<Move> LegalMoveFilter::filter(const GameState& state, const std::vec
 }
 
 bool LegalMoveFilter::leavesOwnKingSafe(const GameState& state, const Move& move) const {
-    // El color sale de la pieza que mueve, no del turno: sirve también para consultar fuera de turno.
     const Color mover = state.board().pieceAt(move.from())->color();
     return !detector_.isInCheck(applier_.apply(state, move), mover);
 }
@@ -24,8 +23,6 @@ bool LegalMoveFilter::leavesOwnKingSafe(const GameState& state, const Move& move
 bool LegalMoveFilter::kingPathIsSafe(const GameState& state, const Move& castling) const {
     const Color enemy = opposite(state.board().pieceAt(castling.from())->color());
     const Offset step(castling.to().file() > castling.from().file() ? 1 : -1, 0);
-    // Desde la casilla de origen (no enrocar en jaque) hasta la anterior al destino; el destino lo
-    // cubre leavesOwnKingSafe con el estado ya aplicado.
     for (Position square = castling.from(); square != castling.to(); square = square + step) {
         if (detector_.isSquareAttacked(state, square, enemy)) {
             return false;
@@ -34,4 +31,4 @@ bool LegalMoveFilter::kingPathIsSafe(const GameState& state, const Move& castlin
     return true;
 }
 
-}  // namespace chess::domain
+}

@@ -18,8 +18,6 @@ using chess::testing::squares;
 
 namespace {
 
-// Se usan las piezas clásicas porque la regla mira el trait canCastleWith de la torre.
-// La regla solo mira la geometría: el jaque lo resuelve LegalMoveFilter (D-07).
 class CastlingRuleTest : public chess::testing::StandardPiecesFixture {
 protected:
     std::vector<Move> movesOf(const GameState& state, const std::string& from) const {
@@ -29,7 +27,7 @@ protected:
     CastlingRule rule_;
 };
 
-}  // namespace
+}
 
 TEST_F(CastlingRuleTest, KingAndRooksThatNeverMovedCanCastleToBothSides) {
     const GameState state(builder()
@@ -102,7 +100,6 @@ TEST_F(CastlingRuleTest, OnlyPiecesWithCanCastleWithAndOfTheSameColorCount) {
 }
 
 TEST_F(CastlingRuleTest, WorksOnLargerBoards) {
-    // 10×10, rey en f1: va dos casillas hacia cada torre y la torre salta al otro lado (D-09).
     const GameState state(builder(BoardDimensions(10, 10))
                               .place("f1", kKing, Color::White)
                               .place("a1", kRook, Color::White)

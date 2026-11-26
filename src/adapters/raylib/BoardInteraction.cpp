@@ -9,7 +9,7 @@ using domain::Position;
 
 void BoardInteraction::click(Position square) {
     if (awaitingPromotion()) {
-        return;  // primero hay que elegir la pieza (o cancelar)
+        return;
     }
     if (selected_) {
         const auto chosen = std::find_if(highlighted_.begin(), highlighted_.end(),
@@ -51,7 +51,6 @@ bool BoardInteraction::redo() {
 }
 
 void BoardInteraction::select(Position square) {
-    // Se puede seleccionar una pieza propia aunque no tenga jugadas (queda sin resaltados).
     const domain::Board& board = game_.state().board();
     const bool ownPiece = board.dimensions().contains(square) && !board.isEmpty(square)
                        && board.pieceAt(square)->color() == game_.state().sideToMove();
@@ -63,4 +62,4 @@ void BoardInteraction::select(Position square) {
     highlighted_ = game_.legalMovesFrom(square);
 }
 
-}  // namespace chess::adapters::raylib
+}

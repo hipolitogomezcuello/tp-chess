@@ -18,7 +18,6 @@ TEST(PositionTest, AddingAnOffsetMovesThePosition) {
 }
 
 TEST(PositionTest, AddingAnOffsetCanLeaveTheBoard) {
-    // Position no conoce el tablero: puede quedar "afuera". Lo decide BoardDimensions.
     const Position outside = Position(0, 0) + Offset(-1, 0);
     EXPECT_EQ(outside.file(), -1);
 }

@@ -29,7 +29,6 @@ class StandardPiecesTest : public ::testing::Test {
 protected:
     StandardPiecesTest() : factory_(registry_) { StandardPieces::registerAll(registry_); }
 
-    // Junta las jugadas de todas las reglas de la pieza (lo que hará MoveGenerator).
     std::vector<Move> movesOf(const PieceTypeId& type, const std::string& from) const {
         const GameState state(BoardBuilder(factory_).place(from, type, Color::White).build());
         const MoveContext context(state, sq(from));
@@ -45,7 +44,7 @@ protected:
     PieceFactory factory_;
 };
 
-}  // namespace
+}
 
 TEST_F(StandardPiecesTest, RegistersTheSixClassicPieces) {
     for (const auto& id : {StandardPieces::kPawn, StandardPieces::kRook, StandardPieces::kKnight,

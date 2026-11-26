@@ -24,4 +24,4 @@ std::vector<Move> LeaperRule::candidateMoves(const MoveContext& context) const {
     return movesOntoReachableSquares(context, attackedSquares(context));
 }
 
-}  // namespace chess::domain
+}

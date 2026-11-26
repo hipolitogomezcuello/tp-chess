@@ -12,19 +12,17 @@
 #include "domain/Piece.hpp"
 #include "domain/Position.hpp"
 
-// raylib define un ::Color (RGBA) global; el color de las piezas se escribe siempre domain::Color.
-// La fuente por defecto de raylib solo trae ASCII: los textos de la ventana van sin tildes.
 namespace chess::adapters::raylib {
 
 namespace {
 
 using domain::Position;
 
-constexpr int kMargin = 40;        // espacio para las letras y números de las coordenadas
-constexpr int kBoardPixels = 640;  // lado del tablero, sea de 8×8 o de 10×10
+constexpr int kCoordinateLabelsMargin = 40;
+constexpr int kBoardPixels = 640;
 constexpr int kStatusHeight = 110;
-constexpr int kWindowWidth = kBoardPixels + 2 * kMargin;
-constexpr int kWindowHeight = kMargin + kBoardPixels + kStatusHeight;
+constexpr int kWindowWidth = kBoardPixels + 2 * kCoordinateLabelsMargin;
+constexpr int kWindowHeight = kCoordinateLabelsMargin + kBoardPixels + kStatusHeight;
 
 const ::Color kLightSquare{240, 217, 181, 255};
 const ::Color kDarkSquare{181, 136, 99, 255};
@@ -55,7 +53,6 @@ void drawCenteredText(const std::string& text, ::Vector2 center, int fontSize, :
              fontSize, color);
 }
 
-// Un círculo con la letra de la pieza: blanco con letra oscura, o al revés. Sin mirar el tipo.
 void drawPiece(const domain::Piece& piece, const ::Rectangle& rect) {
     const bool white = piece.color() == domain::Color::White;
     const ::Vector2 center = centerOf(rect);
@@ -66,13 +63,12 @@ void drawPiece(const domain::Piece& piece, const ::Rectangle& rect) {
     drawCenteredText(letter, center, static_cast<int>(rect.width * 0.45F), white ? kBlackPiece : kWhitePiece);
 }
 
-// Las casillas donde se dibujan las opciones de promoción, en fila en el centro del tablero.
 std::vector<::Rectangle> promotionBoxes(std::size_t count) {
     constexpr float kBox = 90.0F;
     constexpr float kGap = 16.0F;
     const float total = static_cast<float>(count) * kBox + static_cast<float>(count - 1) * kGap;
-    const float left = kMargin + (kBoardPixels - total) / 2.0F;
-    const float top = kMargin + (kBoardPixels - kBox) / 2.0F;
+    const float left = kCoordinateLabelsMargin + (kBoardPixels - total) / 2.0F;
+    const float top = kCoordinateLabelsMargin + (kBoardPixels - kBox) / 2.0F;
     std::vector<::Rectangle> boxes;
     for (std::size_t i = 0; i < count; ++i) {
         boxes.push_back({left + static_cast<float>(i) * (kBox + kGap), top, kBox, kBox});
@@ -84,19 +80,18 @@ bool isGameOver(domain::GameStatus status) {
     return status == domain::GameStatus::Checkmate || status == domain::GameStatus::Stalemate;
 }
 
-}  // namespace
+}
 
 void RaylibUI::run(ports::GameService& game) {
     BoardInteraction interaction(game);
 
     InitWindow(kWindowWidth, kWindowHeight, "TPO Ajedrez");
-    SetExitKey(KEY_NULL);  // Esc cancela la selección; la ventana se cierra con la X
+    SetExitKey(KEY_NULL);
     SetTargetFPS(60);
 
     while (!WindowShouldClose()) {
-        const BoardLayout layout(game.state().board().dimensions(), kMargin, kMargin, kBoardPixels);
+        const BoardLayout layout(game.state().board().dimensions(), kCoordinateLabelsMargin, kCoordinateLabelsMargin, kBoardPixels);
 
-        // ---- Entrada: mouse y teclado → BoardInteraction → GameService
         if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
             const ::Vector2 mouse = GetMousePosition();
             if (interaction.awaitingPromotion()) {
@@ -118,14 +113,12 @@ void RaylibUI::run(ports::GameService& game) {
             interaction.cancel();
         }
         if (IsKeyPressed(KEY_U)) {
-            // Si se pudo, onUndoRedo ya actualizó el estado de la UI; el mensaje se pone después.
             message_ = interaction.undo() ? "Jugada deshecha." : "No hay jugadas para deshacer.";
         }
         if (IsKeyPressed(KEY_R)) {
             message_ = interaction.redo() ? "Jugada rehecha." : "No hay jugadas para rehacer.";
         }
 
-        // ---- Dibujo (se lee el estado otra vez: la entrada puede haberlo cambiado)
         const domain::GameState& current = game.state();
         const domain::Board& currentBoard = current.board();
         const domain::GameStatus status = game.status();
@@ -146,7 +139,6 @@ void RaylibUI::run(ports::GameService& game) {
                     DrawRectangleRec(rect, kSelected);
                 }
                 const auto piece = currentBoard.pieceAt(position);
-                // El rey en jaque se marca por el trait isRoyal, no por ser "el rey".
                 const bool inCheck = (status == domain::GameStatus::Check || status == domain::GameStatus::Checkmate)
                                   && piece && piece->traits().isRoyal && piece->color() == current.sideToMove();
                 if (inCheck) {
@@ -158,7 +150,6 @@ void RaylibUI::run(ports::GameService& game) {
             }
         }
 
-        // Jugadas posibles de la pieza elegida: un punto si la casilla está vacía, un anillo si captura.
         for (const domain::Move& move : interaction.highlightedMoves()) {
             const ::Rectangle rect = squareRect(layout, move.to());
             if (currentBoard.isEmpty(move.to())) {
@@ -168,20 +159,18 @@ void RaylibUI::run(ports::GameService& game) {
             }
         }
 
-        // Coordenadas: letras abajo, números a la izquierda.
         for (int file = 0; file < dims.files(); ++file) {
             const ::Rectangle rect = squareRect(layout, Position(file, 0));
             drawCenteredText(std::string(1, static_cast<char>('a' + file)),
-                             {rect.x + rect.width / 2.0F, rect.y + rect.height + kMargin / 2.0F}, 20, DARKGRAY);
+                             {rect.x + rect.width / 2.0F, rect.y + rect.height + kCoordinateLabelsMargin / 2.0F}, 20, DARKGRAY);
         }
         for (int rank = 0; rank < dims.ranks(); ++rank) {
             const ::Rectangle rect = squareRect(layout, Position(0, rank));
-            drawCenteredText(std::to_string(rank + 1), {kMargin / 2.0F, rect.y + rect.height / 2.0F}, 20, DARKGRAY);
+            drawCenteredText(std::to_string(rank + 1), {kCoordinateLabelsMargin / 2.0F, rect.y + rect.height / 2.0F}, 20, DARKGRAY);
         }
 
-        // Elección de la pieza de promoción: las opciones las da el juego (D-19), se dibujan con su símbolo.
         if (interaction.awaitingPromotion()) {
-            DrawRectangle(kMargin, kMargin, kBoardPixels, kBoardPixels, ::Color{0, 0, 0, 140});
+            DrawRectangle(kCoordinateLabelsMargin, kCoordinateLabelsMargin, kBoardPixels, kBoardPixels, ::Color{0, 0, 0, 140});
             const auto choices = interaction.promotionChoices();
             const auto boxes = promotionBoxes(choices.size());
             for (std::size_t i = 0; i < boxes.size(); ++i) {
@@ -189,18 +178,17 @@ void RaylibUI::run(ports::GameService& game) {
                 drawPiece(choices[i], boxes[i]);
             }
             drawCenteredText("Elegi la pieza de la promocion (Esc cancela)",
-                             {kMargin + kBoardPixels / 2.0F, boxes.front().y - 30.0F}, 22, RAYWHITE);
+                             {kCoordinateLabelsMargin + kBoardPixels / 2.0F, boxes.front().y - 30.0F}, 22, RAYWHITE);
         }
 
-        // Barra de estado.
-        const int statusTop = kMargin + kBoardPixels + kMargin;
+        const int statusTop = kCoordinateLabelsMargin + kBoardPixels + kCoordinateLabelsMargin;
         if (!isGameOver(status)) {
-            DrawText((std::string("Juegan las ") + colorName(current.sideToMove()) + ".").c_str(), kMargin,
+            DrawText((std::string("Juegan las ") + colorName(current.sideToMove()) + ".").c_str(), kCoordinateLabelsMargin,
                      statusTop, 24, BLACK);
         }
-        const int messageLeft = isGameOver(status) ? kMargin : kMargin + 260;
+        const int messageLeft = isGameOver(status) ? kCoordinateLabelsMargin : kCoordinateLabelsMargin + 260;
         DrawText(message_.c_str(), messageLeft, statusTop, 24, MAROON);
-        DrawText("Click: elegir y mover   U: deshacer   R: rehacer   Esc / click derecho: cancelar", kMargin,
+        DrawText("Click: elegir y mover   U: deshacer   R: rehacer   Esc / click derecho: cancelar", kCoordinateLabelsMargin,
                  statusTop + 40, 16, GRAY);
 
         EndDrawing();
@@ -208,7 +196,7 @@ void RaylibUI::run(ports::GameService& game) {
     CloseWindow();
 }
 
-void RaylibUI::onMoveMade(const domain::Move& move, const domain::GameState& /*state*/) {
+void RaylibUI::onMoveMade(const domain::Move& move, const domain::GameState&) {
     lastMove_ = move;
     message_.clear();
 }
@@ -225,9 +213,9 @@ void RaylibUI::onGameOver(domain::GameStatus result, domain::Color sideToMove) {
     }
 }
 
-void RaylibUI::onUndoRedo(const domain::GameState& /*state*/) {
+void RaylibUI::onUndoRedo(const domain::GameState&) {
     lastMove_.reset();
     message_.clear();
 }
 
-}  // namespace chess::adapters::raylib
+}

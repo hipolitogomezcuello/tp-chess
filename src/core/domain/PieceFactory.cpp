@@ -12,4 +12,4 @@ Piece PieceFactory::create(const PieceTypeId& id, Color color) const {
     return Piece(std::move(definition), color);
 }
 
-}  // namespace chess::domain
+}

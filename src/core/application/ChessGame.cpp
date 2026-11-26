@@ -16,7 +16,7 @@ bool isGameOver(domain::GameStatus status) {
     return status == domain::GameStatus::Checkmate || status == domain::GameStatus::Stalemate;
 }
 
-}  // namespace
+}
 
 using domain::GameStatus;
 using domain::Move;
@@ -42,7 +42,6 @@ MoveResult ChessGame::performMove(Position from, Position to, const std::optiona
         return MoveResult::failure(MoveError::NotYourTurn);
     }
 
-    // El dominio ya filtró las jugadas que dejan al rey en jaque: si `to` no está, es ilegal.
     const std::vector<Move> legal = rules_.legalMoves(state_, from);
     const auto chosen = std::find_if(legal.begin(), legal.end(), [to](const Move& m) { return m.to() == to; });
     if (chosen == legal.end()) {
@@ -82,7 +81,7 @@ bool ChessGame::undo() {
     if (!history_.undo(state_)) {
         return false;
     }
-    updatePhase();  // deshacer un mate vuelve a InProgressPhase (D-10)
+    updatePhase();
     notifyUndoRedo();
     return true;
 }
@@ -149,4 +148,4 @@ void ChessGame::notifyUndoRedo() {
     }
 }
 
-}  // namespace chess::application
+}

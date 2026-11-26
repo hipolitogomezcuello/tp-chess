@@ -15,4 +15,4 @@ std::vector<Move> movesOntoReachableSquares(const MoveContext& context, const st
     return result;
 }
 
-}  // namespace chess::domain
+}

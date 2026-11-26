@@ -19,7 +19,6 @@ namespace {
 
 class RulesEngineTest : public chess::testing::StandardPiecesFixture {
 protected:
-    // Busca la jugada legal from→to (como hará ChessGame) y la aplica.
     GameState play(const GameState& state, const std::string& from, const std::string& to) const {
         const auto moves = engine_.legalMoves(state, sq(from));
         const Move* move = findMoveTo(moves, sq(to));
@@ -30,7 +29,7 @@ protected:
     RulesEngine engine_{registry_};
 };
 
-}  // namespace
+}
 
 TEST_F(RulesEngineTest, LegalMovesOfAPawnInTheInitialPosition) {
     EXPECT_EQ(destinations(engine_.legalMoves(initialState(), sq("e2"))), squares({"e3", "e4"}));
@@ -69,20 +68,17 @@ TEST_F(RulesEngineTest, StatusIsInProgressAtTheStart) {
 }
 
 TEST_F(RulesEngineTest, QueenCheckAfterAFewMovesIsDetected) {
-    // 1. e4 f6  2. Dh5+
     GameState state = initialState();
     state = play(state, "e2", "e4");
     state = play(state, "f7", "f6");
     state = play(state, "d1", "h5");
 
     EXPECT_EQ(engine_.status(state), GameStatus::Check);
-    // La única defensa es interponer el peón: g7-g6.
     EXPECT_EQ(destinations(engine_.legalMoves(state, sq("g7"))), squares({"g6"}));
     EXPECT_TRUE(engine_.legalMoves(state, sq("e8")).empty());
 }
 
 TEST_F(RulesEngineTest, FoolsMateIsCheckmate) {
-    // 1. f3 e5  2. g4 Dh4#
     GameState state = initialState();
     state = play(state, "f2", "f3");
     state = play(state, "e7", "e5");
@@ -91,8 +87,6 @@ TEST_F(RulesEngineTest, FoolsMateIsCheckmate) {
 
     EXPECT_EQ(engine_.status(state), GameStatus::Checkmate);
 }
-
-// --- Promoción (D-08): la decide el trait isPromotable del registro ---
 
 TEST_F(RulesEngineTest, CanPromoteOnlyToPromotablePieces) {
     EXPECT_TRUE(engine_.canPromoteTo(kQueen));

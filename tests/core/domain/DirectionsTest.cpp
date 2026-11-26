@@ -14,7 +14,7 @@ bool containsOffset(const std::vector<Offset>& offsets, Offset offset) {
     return std::find(offsets.begin(), offsets.end(), offset) != offsets.end();
 }
 
-}  // namespace
+}
 
 TEST(DirectionsTest, OrthogonalsAreTheFourStraightLines) {
     const auto offsets = Directions::orthogonals();

@@ -9,4 +9,4 @@ ports::MoveResult InProgressPhase::tryMove(ChessGame& game, domain::Position fro
     return game.performMove(from, to, promotion);
 }
 
-}  // namespace chess::application
+}

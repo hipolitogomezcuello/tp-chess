@@ -1,9 +1,5 @@
 #pragma once
 
-// Disposición de 10×10 para los tests de extensibilidad (ensayo de la defensa, arquitectura §9).
-// Es solo otra implementación de StartingPositionProvider (Strategy): Board, las reglas y el motor
-// no cambian. Fila de atrás: R N A B Q K B C N R (con el Arzobispo y el Canciller inventados),
-// peones en la segunda fila de cada bando. Requiere StandardPieces y registerInventedPieces.
 #include <vector>
 
 #include "domain/Board.hpp"
@@ -41,4 +37,4 @@ public:
     }
 };
 
-}  // namespace chess::testing
+}

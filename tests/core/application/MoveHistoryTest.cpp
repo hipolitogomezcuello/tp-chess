@@ -17,7 +17,6 @@ namespace {
 
 class MoveHistoryTest : public chess::testing::StandardPiecesFixture {
 protected:
-    // Ejecuta la jugada sobre `state` y la anota en el historial, como hace ChessGame.
     void play(GameState& state, const std::string& from, const std::string& to) {
         MoveCommand command(rules_, Move(sq(from), sq(to)));
         command.execute(state);
@@ -28,7 +27,7 @@ protected:
     MoveHistory history_;
 };
 
-}  // namespace
+}
 
 TEST_F(MoveHistoryTest, StartsEmpty) {
     GameState state = initialState();

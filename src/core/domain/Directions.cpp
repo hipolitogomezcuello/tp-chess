@@ -22,4 +22,4 @@ std::vector<Offset> Directions::knightJumps() {
             Offset(-1, -2), Offset(-2, -1), Offset(-2, 1), Offset(-1, 2)};
 }
 
-}  // namespace chess::domain
+}

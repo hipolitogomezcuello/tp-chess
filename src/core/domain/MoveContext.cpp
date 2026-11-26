@@ -14,9 +14,9 @@ Piece pieceAtOrigin(const GameState& state, Position from) {
     return *piece;
 }
 
-}  // namespace
+}
 
 MoveContext::MoveContext(const GameState& state, Position from)
     : state_(state), from_(from), piece_(pieceAtOrigin(state, from)) {}
 
-}  // namespace chess::domain
+}

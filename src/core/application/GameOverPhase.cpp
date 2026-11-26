@@ -4,10 +4,9 @@
 
 namespace chess::application {
 
-ports::MoveResult GameOverPhase::tryMove(ChessGame& /*game*/, domain::Position /*from*/,
-                                         domain::Position /*to*/,
-                                         const std::optional<domain::PieceTypeId>& /*promotion*/) const {
+ports::MoveResult GameOverPhase::tryMove(ChessGame&, domain::Position, domain::Position,
+                                         const std::optional<domain::PieceTypeId>&) const {
     return ports::MoveResult::failure(ports::MoveError::GameOver);
 }
 
-}  // namespace chess::application
+}

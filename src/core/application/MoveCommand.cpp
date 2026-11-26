@@ -13,4 +13,4 @@ void MoveCommand::undo(domain::GameState& state) const {
     }
 }
 
-}  // namespace chess::application
+}

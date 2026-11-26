@@ -34,7 +34,7 @@ protected:
     PieceFactory factory_;
 };
 
-}  // namespace
+}
 
 TEST_F(BoardTest, StartsEmptyWithTheGivenDimensions) {
     const Board board(BoardDimensions(10, 10));
@@ -80,7 +80,6 @@ TEST_F(BoardTest, MoveRelocatesThePieceAndCapturesWhateverWasThere) {
 }
 
 TEST_F(BoardTest, MoveDoesNotApplyGameRules) {
-    // Board no sabe de reglas: no marca hasMoved (eso lo hace MoveApplier).
     Board board = BoardBuilder(factory_).place("a1", kRook, Color::White).build();
     board.move(sq("a1"), sq("a2"));
     EXPECT_FALSE(board.pieceAt(sq("a2"))->hasMoved());

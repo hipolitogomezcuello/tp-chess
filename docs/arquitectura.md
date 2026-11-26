@@ -168,7 +168,7 @@ Helpers sin estado: `Directions::orthogonals()`, `diagonals()`, `all()` y `knigh
 | `MoveApplier` | Aplica un `Move` a un `GameState` y devuelve el nuevo estado: mueve las piezas, resuelve la captura al paso, el enroque y la promoción (crea la pieza elegida con la `PieceFactory` que recibe por constructor), y actualiza `hasMoved` y el turno. Es puro: no muta la entrada. |
 | `LegalMoveFilter` | Descarta los movimientos pseudo-legales que dejan al propio rey en jaque (los aplica sobre una copia y consulta `AttackDetector`). En un `Castling` además exige que el rey no esté en jaque ni cruce casillas atacadas (D-07). |
 | `GameStatusEvaluator` | Calcula el estado de la partida para el bando que mueve con dos preguntas: ¿está en jaque? (`AttackDetector`) y ¿tiene alguna jugada legal? (`MoveGenerator` + `LegalMoveFilter`). En jaque y sin jugadas es `Checkmate`; sin jaque y sin jugadas, `Stalemate`. |
-| `RulesEngine` | Fachada del dominio: `legalMoves(state, from)`, `apply(state, move)`, `status(state)`. Crea y posee las clases anteriores; no se copia. `legalMoves` no mira el turno (lo valida la aplicación, D-14). Se construye con un `PieceRegistry&`, crea la `PieceFactory` para la promoción y responde `canPromoteTo(id)` y `promotionChoices(color)` (D-08, D-19). |
+| `RulesEngine` | Fachada del dominio: `legalMoves(state, from)`, `apply(state, move)`, `status(state)`. Crea y posee las clases anteriores; no se copia. `legalMoves` no mira el turno (lo valida la aplicación, D-14). Se construye con un `PieceRegistry&`, crea la `PieceFactory` para la promoción y responde `canPromoteTo(id)` y `promotionChoices(color)` (D-08, D-19). Sus miembros se referencian entre sí, así que **el orden de declaración importa**: cada uno solo usa a los declarados antes (registro → fábrica → generador → … → evaluador). |
 
 Pipeline de validación de una jugada:
 ```
@@ -315,6 +315,9 @@ resultado esperado y se devuelve en `MoveResult`. Las excepciones quedan para er
   cancelar, deshacer y rehacer. Solo conoce `GameService`.
 - `BoardLayout`: traduce píxeles ↔ casillas (negras arriba) para cualquier tamaño de tablero.
 - Controles: click izquierdo elige y mueve; `Esc` o click derecho cancelan; `U` deshace y `R` rehace.
+  `Esc` no cierra la ventana (se cierra con la X).
+- La fuente por defecto de raylib solo trae ASCII: los textos de la ventana van sin tildes. raylib
+  define un `::Color` global, así que en el adaptador el color de las piezas se escribe siempre `domain::Color`.
 - `BoardLayout` y `BoardInteraction` se testean en `chess_raylib_tests` sin abrir ninguna ventana.
 
 ## 7. Flujo de una jugada (resumen del diagrama de secuencia)

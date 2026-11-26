@@ -33,7 +33,7 @@ protected:
     LegalMoveFilter filter_;
 };
 
-}  // namespace
+}
 
 TEST_F(LegalMoveFilterTest, KeepsEveryMoveWhenNothingIsAtStake) {
     const GameState state(builder()
@@ -46,7 +46,6 @@ TEST_F(LegalMoveFilterTest, KeepsEveryMoveWhenNothingIsAtStake) {
 }
 
 TEST_F(LegalMoveFilterTest, PinnedPieceCannotLeaveThePinLine) {
-    // Caballo clavado en e2 por la torre de e8: no tiene ninguna jugada legal.
     const GameState state(builder()
                               .place("e1", kKing, Color::White)
                               .place("e2", kKnight, Color::White)
@@ -67,7 +66,6 @@ TEST_F(LegalMoveFilterTest, PinnedSliderCanStillMoveAlongThePinLine) {
 }
 
 TEST_F(LegalMoveFilterTest, KingCannotStepIntoCheck) {
-    // La torre negra en d8 controla toda la columna d.
     const GameState state(builder()
                               .place("e1", kKing, Color::White)
                               .place("d8", kRook, Color::Black)
@@ -97,7 +95,6 @@ TEST_F(LegalMoveFilterTest, KingCanCaptureAnUndefendedAttacker) {
 }
 
 TEST_F(LegalMoveFilterTest, WhenInCheckOnlyMovesThatResolveItRemain) {
-    // Jaque de la torre en e8: la torre blanca de a2 solo puede tapar en e2.
     const GameState state(builder()
                               .place("e1", kKing, Color::White)
                               .place("a2", kRook, Color::White)
@@ -118,7 +115,6 @@ TEST_F(LegalMoveFilterTest, CapturingTheCheckingPieceResolvesTheCheck) {
 }
 
 TEST_F(LegalMoveFilterTest, UsesTheColorOfTheMovingPieceNotTheSideToMove) {
-    // El filtro protege al rey de quien mueve, aunque se lo consulte fuera de turno (p. ej. para resaltar).
     const GameState state(builder()
                               .place("e1", kKing, Color::White)
                               .place("e2", kKnight, Color::White)
@@ -129,11 +125,8 @@ TEST_F(LegalMoveFilterTest, UsesTheColorOfTheMovingPieceNotTheSideToMove) {
     EXPECT_TRUE(legalMovesFrom(state, "e2").empty());
 }
 
-// --- Enroque: la condición de jaque vive en el filtro (D-07) ---
-
 namespace {
 
-// Rey y torres blancas listos para enrocar, más lo que se agregue.
 chess::testing::BoardBuilder readyToCastle(chess::testing::BoardBuilder builder) {
     builder.place("e1", chess::domain::StandardPieces::kKing, Color::White)
         .place("a1", chess::domain::StandardPieces::kRook, Color::White)
@@ -142,7 +135,7 @@ chess::testing::BoardBuilder readyToCastle(chess::testing::BoardBuilder builder)
     return builder;
 }
 
-}  // namespace
+}
 
 TEST_F(LegalMoveFilterTest, BothCastlingsAreLegalWhenNothingIsAttacked) {
     const GameState state(readyToCastle(builder()).build());
@@ -163,7 +156,6 @@ TEST_F(LegalMoveFilterTest, CannotCastleOutOfCheck) {
 }
 
 TEST_F(LegalMoveFilterTest, CannotCastleThroughAnAttackedSquare) {
-    // La torre negra en f8 ataca f1: el rey no puede pasar por ahí, pero sí enrocar largo.
     const GameState state(readyToCastle(builder()).place("f8", kRook, Color::Black).build());
 
     const auto moves = legalMovesFrom(state, "e1");
@@ -179,16 +171,12 @@ TEST_F(LegalMoveFilterTest, CannotCastleIntoCheck) {
 }
 
 TEST_F(LegalMoveFilterTest, AnAttackedSquareTheKingDoesNotCrossDoesNotMatter) {
-    // En el enroque largo la torre pasa por b1, pero el rey no: que b1 esté atacada no lo impide.
     const GameState state(readyToCastle(builder()).place("b8", kRook, Color::Black).build());
 
     EXPECT_NE(chess::testing::findMoveTo(legalMovesFrom(state, "e1"), sq("c1")), nullptr);
 }
 
-// --- Al paso: el filtro lo cubre sin casos especiales ---
-
 TEST_F(LegalMoveFilterTest, EnPassantThatExposesTheKingOnTheRankIsIllegal) {
-    // Al capturar al paso se van b5 y c5 de la fila 5 a la vez: la torre de h5 quedaría mirando al rey.
     const GameState state(builder()
                               .place("a5", kKing, Color::White)
                               .placeMoved("b5", kPawn, Color::White)

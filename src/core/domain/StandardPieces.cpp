@@ -27,7 +27,7 @@ void add(PieceRegistry& registry, const PieceTypeId& id, char symbol, Rules rule
     registry.add(std::make_shared<const PieceDefinition>(id, symbol, std::move(rules), traits));
 }
 
-}  // namespace
+}
 
 void StandardPieces::registerAll(PieceRegistry& registry) {
     PieceTraits promotable;
@@ -49,4 +49,4 @@ void StandardPieces::registerAll(PieceRegistry& registry) {
     add(registry, kKing, 'K', std::move(kingRules), royal);
 }
 
-}  // namespace chess::domain
+}

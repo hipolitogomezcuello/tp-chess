@@ -59,4 +59,4 @@ std::size_t Board::indexOf(Position position) const {
          + static_cast<std::size_t>(position.file());
 }
 
-}  // namespace chess::domain
+}

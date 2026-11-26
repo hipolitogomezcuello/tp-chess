@@ -15,4 +15,4 @@ bool BoardDimensions::contains(Position position) const {
         && position.rank() >= 0 && position.rank() < ranks_;
 }
 
-}  // namespace chess::domain
+}

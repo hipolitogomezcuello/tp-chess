@@ -17,7 +17,6 @@ using chess::testing::sq;
 
 namespace {
 
-// La UI solo conoce el puerto GameService; acá se le da el ChessGame real para probar de punta a punta.
 class ConsoleUITest : public chess::testing::StandardPiecesFixture {
 protected:
     void run(const std::string& input) { run(game_, input); }
@@ -27,7 +26,6 @@ protected:
         ConsoleUI(game, in, out_).run();
     }
 
-    // Peón blanco listo para promover en c8.
     GameState aboutToPromote() const {
         return GameState(builder()
                              .place("a1", kKing, Color::White)
@@ -43,7 +41,7 @@ protected:
     std::ostringstream out_;
 };
 
-}  // namespace
+}
 
 TEST_F(ConsoleUITest, AMoveCommandMakesTheMove) {
     run("e2 e4\n");
@@ -142,8 +140,6 @@ TEST_F(ConsoleUITest, ExplainsThatTheGameIsOver) {
     EXPECT_TRUE(game_.state().board().isEmpty(sq("a3")));
 }
 
-// --- Deshacer y rehacer ---
-
 TEST_F(ConsoleUITest, UndoTakesBackTheLastMove) {
     run("e2 e4\nundo\n");
 
@@ -164,8 +160,6 @@ TEST_F(ConsoleUITest, UndoAndRedoWithNothingToDoSaySo) {
     EXPECT_TRUE(printed("No hay jugadas para deshacer"));
     EXPECT_TRUE(printed("No hay jugadas para rehacer"));
 }
-
-// --- Promoción: "c7 c8 q" (la letra es el símbolo de la pieza, o su id completo) ---
 
 TEST_F(ConsoleUITest, AThirdWordChoosesThePromotionPiece) {
     ChessGame game(rules_, aboutToPromote());
@@ -218,7 +212,6 @@ TEST_F(ConsoleUITest, RejectsAPromotionPieceOnANormalMove) {
 }
 
 TEST_F(ConsoleUITest, AnInventedPromotablePieceIsChosenByItsSymbolWithoutTouchingTheConsole) {
-    // Extensibilidad (D-19): la consola busca entre promotionChoices(), no tiene un switch de tipos.
     chess::testing::registerInventedPieces(registry_);
     ChessGame game(rules_, aboutToPromote());
 

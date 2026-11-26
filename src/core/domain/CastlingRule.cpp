@@ -10,10 +10,9 @@ namespace chess::domain {
 
 namespace {
 
-// Para que el rey se mueva dos casillas sin pisar a su compañera, tiene que haber al menos dos entre ellos.
-constexpr int kMinimumDistance = 3;
+constexpr int kMinimumDistanceToCastlingPartner = 3;
 
-}  // namespace
+}
 
 std::vector<Move> CastlingRule::candidateMoves(const MoveContext& context) const {
     const Board& board = context.board();
@@ -24,7 +23,6 @@ std::vector<Move> CastlingRule::candidateMoves(const MoveContext& context) const
     }
 
     for (const Offset side : {Offset(1, 0), Offset(-1, 0)}) {
-        // Avanza por las casillas vacías hasta la primera pieza (o el borde).
         Position square = context.from() + side;
         while (board.dimensions().contains(square) && board.isEmpty(square)) {
             square = square + side;
@@ -36,7 +34,7 @@ std::vector<Move> CastlingRule::candidateMoves(const MoveContext& context) const
         const Piece partner = *board.pieceAt(square);
         const bool canCastle = partner.color() == king.color() && partner.traits().canCastleWith
                             && !partner.hasMoved()
-                            && std::abs(square.file() - context.from().file()) >= kMinimumDistance;
+                            && std::abs(square.file() - context.from().file()) >= kMinimumDistanceToCastlingPartner;
         if (canCastle) {
             const Position kingTo = context.from() + side + side;
             const Position partnerTo = context.from() + side;
@@ -46,8 +44,8 @@ std::vector<Move> CastlingRule::candidateMoves(const MoveContext& context) const
     return result;
 }
 
-std::vector<Position> CastlingRule::attackedSquares(const MoveContext& /*context*/) const {
+std::vector<Position> CastlingRule::attackedSquares(const MoveContext&) const {
     return {};
 }
 
-}  // namespace chess::domain
+}

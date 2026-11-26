@@ -19,7 +19,7 @@ protected:
     RulesEngine rules_{registry_};
 };
 
-}  // namespace
+}
 
 TEST_F(MoveCommandTest, ExecuteAppliesTheMove) {
     GameState state = initialState();
@@ -33,7 +33,6 @@ TEST_F(MoveCommandTest, ExecuteAppliesTheMove) {
 }
 
 TEST_F(MoveCommandTest, UndoRestoresTheWholePreviousState) {
-    // El Memento es el GameState completo: tablero, turno y casilla de al paso.
     GameState state(initialState().board(), Color::White, sq("d6"));
     MoveCommand command(rules_, Move(sq("g1"), sq("f3")));
     command.execute(state);

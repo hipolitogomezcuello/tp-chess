@@ -12,12 +12,11 @@ int forwardOf(Color color) {
     return color == Color::White ? 1 : -1;
 }
 
-// Un peón promueve al llegar a la fila desde la que ya no puede avanzar más.
-MoveKind kindFor(const Board& board, Position target, Offset step, MoveKind usual) {
-    return board.dimensions().contains(target + step) ? usual : MoveKind::Promotion;
+MoveKind promotionIfLastRank(const Board& board, Position target, Offset step, MoveKind kindBeforeLastRank) {
+    return board.dimensions().contains(target + step) ? kindBeforeLastRank : MoveKind::Promotion;
 }
 
-}  // namespace
+}
 
 std::vector<Position> PawnRule::attackedSquares(const MoveContext& context) const {
     const int forward = forwardOf(context.piece().color());
@@ -37,10 +36,9 @@ std::vector<Move> PawnRule::candidateMoves(const MoveContext& context) const {
     const Offset step(0, forwardOf(pawn.color()));
     std::vector<Move> result;
 
-    // Avance: solo a casillas vacías.
     const Position oneAhead = context.from() + step;
     if (board.dimensions().contains(oneAhead) && board.isEmpty(oneAhead)) {
-        result.emplace_back(context.from(), oneAhead, kindFor(board, oneAhead, step, MoveKind::Normal));
+        result.emplace_back(context.from(), oneAhead, promotionIfLastRank(board, oneAhead, step, MoveKind::Normal));
 
         const Position twoAhead = oneAhead + step;
         if (!pawn.hasMoved() && board.dimensions().contains(twoAhead) && board.isEmpty(twoAhead)) {
@@ -48,13 +46,11 @@ std::vector<Move> PawnRule::candidateMoves(const MoveContext& context) const {
         }
     }
 
-    // Captura: solo en diagonal hacia adelante y si hay una pieza enemiga.
     for (const Position target : attackedSquares(context)) {
         const auto victim = board.pieceAt(target);
         if (victim && victim->color() != pawn.color()) {
-            result.emplace_back(context.from(), target, kindFor(board, target, step, MoveKind::Capture));
+            result.emplace_back(context.from(), target, promotionIfLastRank(board, target, step, MoveKind::Capture));
         } else if (!victim && context.state().enPassantTarget() == target) {
-            // El peón que avanzó dos está al lado, en la fila del que captura.
             const Position passed(target.file(), context.from().rank());
             const auto passedPawn = board.pieceAt(passed);
             if (passedPawn && passedPawn->color() != pawn.color()) {
@@ -65,4 +61,4 @@ std::vector<Move> PawnRule::candidateMoves(const MoveContext& context) const {
     return result;
 }
 
-}  // namespace chess::domain
+}

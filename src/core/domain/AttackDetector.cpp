@@ -31,4 +31,4 @@ bool AttackDetector::isInCheck(const GameState& state, Color color) const {
     return false;
 }
 
-}  // namespace chess::domain
+}

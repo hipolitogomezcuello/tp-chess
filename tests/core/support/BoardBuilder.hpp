@@ -1,12 +1,5 @@
 #pragma once
 
-// Helper de tests: arma posiciones a mano en lugar de jugar partidas enteras
-// (docs/arquitectura.md §8).
-//
-//   const Board board = BoardBuilder(factory)
-//       .place("e1", kKing, Color::White)
-//       .place("e8", kKing, Color::Black)
-//       .build();
 #include <string>
 
 #include "domain/Board.hpp"
@@ -29,7 +22,6 @@ public:
         return *this;
     }
 
-    // Pieza que ya se movió (sin doble avance de peón ni derecho de enroque).
     BoardBuilder& placeMoved(const std::string& square, const domain::PieceTypeId& type,
                              domain::Color color) {
         board_.place(sq(square), factory_.create(type, color).withMoved());
@@ -43,4 +35,4 @@ private:
     domain::Board board_;
 };
 
-}  // namespace chess::testing
+}

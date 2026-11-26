@@ -81,7 +81,6 @@ TEST_F(AttackDetectorTest, KnightChecksJumpingOverPieces) {
 }
 
 TEST_F(AttackDetectorTest, CheckLooksForTheRoyalTraitNotForTheKingType) {
-    // Una pieza inventada con isRoyal también puede quedar en jaque; un rey sin el trait, no.
     PieceTraits royal;
     royal.isRoyal = true;
     registry_.add(makeBareDefinition("emperor", 'E', royal));

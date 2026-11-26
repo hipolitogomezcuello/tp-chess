@@ -41,7 +41,6 @@ TEST_F(PawnRuleTest, MovedPawnOnlyAdvancesOneSquare) {
 }
 
 TEST_F(PawnRuleTest, DoublePushDependsOnHasMovedNotOnTheRank) {
-    // D-09: en un tablero de otro tamaño el peón puede arrancar en otra fila.
     const PawnRule pawn;
     const GameState state(builder(BoardDimensions(10, 10)).place("e3", kPiece, Color::White).build());
 
@@ -133,8 +132,6 @@ TEST_F(PawnRuleTest, PawnOnTheLastRankHasNoMoves) {
     EXPECT_TRUE(attacksOf(pawn, state, "e8").empty());
 }
 
-// --- Promoción: la regla la marca, no elige la pieza (D-08) ---
-
 TEST_F(PawnRuleTest, AdvancingToTheLastRankIsAPromotion) {
     const PawnRule pawn;
     const GameState state(builder().placeMoved("e7", kPiece, Color::White).build());
@@ -168,7 +165,6 @@ TEST_F(PawnRuleTest, BlackPromotesOnRankOne) {
 }
 
 TEST_F(PawnRuleTest, PromotionHappensOnTheLastRankOfTheRealBoard) {
-    // En un 10×10 la fila 8 es una más; la promoción es en la 10 (D-09).
     const PawnRule pawn;
     const GameState state(builder(BoardDimensions(10, 10))
                               .placeMoved("e7", kPiece, Color::White)
@@ -179,10 +175,7 @@ TEST_F(PawnRuleTest, PromotionHappensOnTheLastRankOfTheRealBoard) {
     EXPECT_EQ(movesOf(pawn, state, "g9")[0].kind(), MoveKind::Promotion);
 }
 
-// --- Captura al paso: la casilla la deja MoveApplier en GameState::enPassantTarget ---
-
 TEST_F(PawnRuleTest, CapturesEnPassantOnTheTargetSquare) {
-    // Las negras acaban de jugar d7-d5: la casilla de al paso es d6.
     const PawnRule pawn;
     const GameState state(builder()
                               .placeMoved("e5", kPiece, Color::White)
@@ -224,7 +217,6 @@ TEST_F(PawnRuleTest, WithoutATargetSquareThereIsNoEnPassant) {
 }
 
 TEST_F(PawnRuleTest, EnPassantNeedsAnEnemyNextToThePawn) {
-    // Con la casilla marcada pero sin víctima al lado (p. ej. un peón propio), no hay captura.
     const PawnRule pawn;
     const GameState state(builder()
                               .placeMoved("e5", kPiece, Color::White)

@@ -81,7 +81,6 @@ TEST_F(SlidingRuleTest, UsesTheRealBoardSizeNotEightByEight) {
 }
 
 TEST_F(SlidingRuleTest, AttacksUpToAndIncludingTheFirstPieceOfAnyColor) {
-    // La casilla de una pieza propia cuenta como atacada (defendida): el rey rival no puede capturarla.
     const SlidingRule rook(Directions::orthogonals());
     const GameState state(builder()
                               .place("a1", kPiece, Color::White)
