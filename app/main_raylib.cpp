@@ -1,4 +1,6 @@
 #include "adapters/raylib/RaylibUI.hpp"
+#include "adapters/raylib/SpriteCatalog.hpp"
+#include "adapters/raylib/StandardSprites.hpp"
 #include "application/ChessGame.hpp"
 #include "domain/GameState.hpp"
 #include "domain/PieceFactory.hpp"
@@ -17,7 +19,9 @@ int main() {
     const domain::StandardStartingPosition startingPosition;
     const domain::RulesEngine rules(registry);
 
-    adapters::raylib::RaylibUI ui;
+    adapters::raylib::SpriteCatalog sprites;
+    adapters::raylib::StandardSprites::registerAll(sprites);
+    adapters::raylib::RaylibUI ui(sprites);
 
     application::ChessGame game(rules, domain::GameState(startingPosition.createInitialBoard(factory)));
     game.addObserver(ui);

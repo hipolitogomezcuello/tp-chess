@@ -151,19 +151,19 @@ Leyenda: `[ ]` pendiente · `[~]` en curso · `[x]` hecha
 
 ## Fase 11 — Piezas pixel art en la UI gráfica
 
-- [ ] **11.1** Sprites retro de las seis piezas estándar en `src/adapters/raylib/`.
+- [x] **11.1** Sprites retro de las seis piezas estándar en `src/adapters/raylib/`.
   - Cada pieza es un mapa de píxeles chico (p. ej. 16×16) definido en el adaptador y dibujado con
     rectángulos o convertido a `Texture2D` al iniciar. Así no hay archivos de assets que copiar junto
     al ejecutable (importante para la fase 13). Paleta limitada y contorno oscuro para que se lean
     las piezas blancas y las negras sobre las dos casillas.
   - El escalado tiene que ser entero y sin suavizado (`TEXTURE_FILTER_POINT`) para que el píxel se vea nítido.
-- [ ] **11.2** Catálogo de sprites abierto/cerrado.
+- [x] **11.2** Catálogo de sprites abierto/cerrado.
   - Los sprites se registran por `PieceTypeId` en el composition root (`main_raylib.cpp`), como las piezas
     en `PieceRegistry`. Una pieza sin sprite registrado (p. ej. el Arzobispo de la guía de defensa) se
     sigue dibujando con su letra. Prohibido un `switch` sobre el tipo de pieza.
   - Tests sin ventana de la parte testeable (búsqueda en el catálogo, fallback a letra), igual que
     `BoardLayout`/`BoardInteraction`.
-- [ ] **11.3** UML (`clases-aplicacion.puml`), entrada en `decisiones.md` y re-exportar los diagramas.
+- [x] **11.3** UML (`clases-aplicacion.puml`), entrada en `decisiones.md` y re-exportar los diagramas.
   - Verificar que `git diff -- src/core` siga vacío: es un cambio solo del adaptador.
   - Actualizar `docs/guia-defensa.md`: al agregar una pieza en vivo, el sprite es opcional.
 

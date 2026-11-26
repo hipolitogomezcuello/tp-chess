@@ -14,6 +14,10 @@ FetchContent_MakeAvailable(raylib)
 add_library(chess_raylib_adapter STATIC
     BoardLayout.cpp
     BoardInteraction.cpp
+    PixelSprite.cpp
+    SpritePalette.cpp
+    SpriteCatalog.cpp
+    StandardSprites.cpp
     RaylibUI.cpp
 )
 

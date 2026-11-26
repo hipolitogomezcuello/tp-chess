@@ -68,11 +68,15 @@ target_link_libraries(chess_console_tests PRIVATE chess_console_adapter chess_wa
 gtest_discover_tests(chess_console_tests)
 
 # chess_raylib_tests — la parte del adaptador gráfico que no necesita una ventana: la geometría del
-# tablero (BoardLayout) y el significado de cada click (BoardInteraction). RaylibUI no se testea acá.
+# tablero (BoardLayout), el significado de cada click (BoardInteraction) y los sprites (PixelSprite,
+# SpritePalette, SpriteCatalog, StandardSprites). RaylibUI no se testea acá.
 if(CHESS_BUILD_RAYLIB)
     add_executable(chess_raylib_tests
         adapters/raylib/BoardLayoutTest.cpp
         adapters/raylib/BoardInteractionTest.cpp
+        adapters/raylib/PixelSpriteTest.cpp
+        adapters/raylib/SpritePaletteTest.cpp
+        adapters/raylib/SpriteCatalogTest.cpp
     )
     target_include_directories(chess_raylib_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/core)
     target_link_libraries(chess_raylib_tests PRIVATE chess_raylib_adapter chess_warnings GTest::gtest_main)

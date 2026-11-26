@@ -75,6 +75,12 @@ raylib aparece un botón más. Para verla desde el principio de la partida, ver 
 - Si el `PieceTypeId` fuera un `enum`, habría que editarlo, y cada `switch` que lo usa (D-03).
 - Si se registra dos veces el mismo id, `PieceRegistry::add` lanza una excepción: es un error de
   programación, no de juego (D-05).
+- **El sprite es opcional** (D-26). En raylib, una pieza sin sprite registrado se dibuja como un
+  círculo con su letra (`A`), sin tocar nada. Si piden que se vea como las demás, en
+  `app/main_raylib.cpp`, después de `StandardSprites::registerAll(sprites);`, se agrega
+  `sprites.add(domain::PieceTypeId("archbishop"), adapters::raylib::PixelSprite({...}));` con 16 filas
+  de 16 caracteres (`.` transparente, `o` contorno, `f` relleno, `s` sombra). Es un registro más, igual
+  que la pieza: ni `RaylibUI` ni `StandardSprites` cambian.
 
 ---
 
@@ -336,7 +342,9 @@ dos filas vacías más), alcanza con cambiar `BoardDimensions(8, 10)` y la fila 
 **Cómo mostrarlo funcionando:** `chess_console` dibuja 10 columnas (`a`–`j`) y 10 filas; `e2 e4` es un
 doble avance, `j2 j4` funciona, y el enroque corto es `f1 h1` una vez despejadas `g1`, `h1` e `i1` (el
 rey va dos casillas hacia la torre de `j1`).
-`moves c1` lista las jugadas del Arzobispo. En raylib, la ventana dibuja el tablero de 10×10 sola.
+`moves c1` lista las jugadas del Arzobispo. En raylib, la ventana dibuja el tablero de 10×10 sola: las
+piezas clásicas con su sprite (a escala 3 en vez de 4, porque las casillas son más chicas) y el
+Arzobispo y el Canciller con su letra, salvo que se les registre un sprite (sección 1).
 
 **Qué decir:**
 - `Board` guarda su `BoardDimensions`; ninguna regla usa el número 8 (D-09). El doble avance del peón

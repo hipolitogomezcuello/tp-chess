@@ -44,6 +44,7 @@
 | D-23 | La notación algebraica vive en el adaptador, no en el dominio | Adaptadores |
 | D-24 | Alcance opcional que se dejó afuera | Alcance |
 | D-25 | Código sin comentarios: los nombres explican, `docs/` justifica | Proceso |
+| D-26 | Sprites pixel art en código, registrados por `PieceTypeId` | Adaptadores |
 
 **Cómo leerlo en la defensa:** D-02, D-03, D-08 y D-09 explican por qué agregar una pieza o cambiar
 el tablero no toca código existente; D-01, D-16, D-17 y D-22, por qué la UI se cambia sin tocar el
@@ -408,3 +409,24 @@ terceros que espere documentación en el header (Doxygen). En esos casos un come
 que un nombre forzado.
 **Dónde en el código:** todo `src/`, `app/` y `tests/`; la regla está en `CLAUDE.md` (regla 6 y
 "Estilo de código").
+
+## D-26 — Sprites pixel art en código, registrados por `PieceTypeId`
+**Estado:** vigente
+**Qué:** la UI gráfica dibuja las seis piezas clásicas con sprites de 16×16 escritos como texto en
+`StandardSprites.cpp`. Los sprites se registran por `PieceTypeId` en un `SpriteCatalog` desde
+`main_raylib.cpp`, igual que las piezas en el `PieceRegistry`. Una pieza sin sprite se sigue dibujando
+con su letra. raylib los convierte en texturas al abrir la ventana, se escalan por un factor entero y
+se dibujan con `TEXTURE_FILTER_POINT`.
+**Por qué:** con un `switch` sobre el tipo de pieza para elegir el dibujo, cada pieza nueva obligaría
+a editar `RaylibUI`, y eso es justo lo que el diseño evita (D-03). Con el catálogo, agregar un sprite es
+registrar uno más, y una pieza inventada en la defensa funciona sin sprite. Escribir los sprites en el
+código en vez de cargar `.png` deja al ejecutable sin archivos que copiar al lado (fase 13) y hace que la
+validación (filas del mismo ancho, códigos conocidos) se pueda testear sin ventana. La escala entera y
+el filtro POINT mantienen el píxel nítido. La alternativa de dibujar rectángulos por píxel en cada frame
+también funcionaba, pero obligaba a recorrer 256 píxeles por pieza en cada cuadro.
+**Cuándo se rompería:** si los sprites los hiciera un artista con un editor, el texto en el código
+estorbaría: convendría cargar imágenes (o incrustarlas en el binario como bytes) detrás del mismo
+`SpriteCatalog`. Si las piezas necesitaran animación o más colores que los cuatro códigos de hoy,
+`PixelSprite` y `SpritePalette` tendrían que crecer.
+**Dónde en el código:** `src/adapters/raylib/PixelSprite`, `SpritePalette`, `SpriteCatalog`,
+`StandardSprites`, `RaylibUI` (`SpriteTextures`), `app/main_raylib.cpp`.

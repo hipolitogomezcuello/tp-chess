@@ -30,6 +30,8 @@ package "chess::adapters" as adapters <<Adaptador>> {
     [RaylibUI]
     [BoardInteraction]
     [BoardLayout]
+    [SpriteCatalog]
+    [StandardSprites]
   }
 }
 
@@ -72,6 +74,8 @@ package "tests" as tests {
 [ConsoleRenderer] --> [AlgebraicNotation]
 [RaylibUI] --> [BoardInteraction] : clicks
 [RaylibUI] --> [BoardLayout] : píxel ↔ casilla
+[RaylibUI] --> [SpriteCatalog] : sprites
+[StandardSprites] --> [SpriteCatalog] : registra
 [BoardInteraction] --> GameService : usa
 [RaylibUI] --> raylibLib
 
@@ -90,7 +94,7 @@ ports --> domain : expone value objects\n(Position, Move, GameState…)
 mainConsole --> console : crea
 mainConsole --> application : crea
 mainConsole --> domain : registra piezas
-mainRaylib --> raylibAdapter : crea
+mainRaylib --> raylibAdapter : crea y registra sprites
 mainRaylib --> application : crea
 mainRaylib --> domain : registra piezas
 

@@ -139,11 +139,13 @@ package "chess::adapters::console" {
 
 package "chess::adapters::raylib" {
   class RaylibUI <<Adapter>> <<HumbleObject>> {
+    +RaylibUI(sprites: const SpriteCatalog&)
     +run(game: GameService&): void
     +onMoveMade(move: const Move&, state: const GameState&): void
     +onCheck(colorInCheck: Color): void
     +onGameOver(result: GameStatus, sideToMove: Color): void
     +onUndoRedo(state: const GameState&): void
+    -sprites_: const SpriteCatalog&
     -lastMove_: optional<Move>
     -message_: string
   }
@@ -171,6 +173,42 @@ package "chess::adapters::raylib" {
   class "BoardLayout::Point" as Point <<struct>> {
     +x: int
     +y: int
+  }
+  class SpriteCatalog <<Registry>> {
+    +add(type: const PieceTypeId&, sprite: PixelSprite): void
+    +find(type: const PieceTypeId&): const PixelSprite*
+    -sprites_: map<PieceTypeId, PixelSprite>
+  }
+  class PixelSprite <<ValueObject>> {
+    +PixelSprite(rows: vector<string>)
+    +width(): int
+    +height(): int
+    +pixelAt(x: int, y: int): SpritePixel
+    +placedIn(boxX: int, boxY: int, boxPixels: int): Placement
+    -rows_: vector<string>
+  }
+  class "PixelSprite::Placement" as Placement <<struct>> {
+    +x: int
+    +y: int
+    +scale: int
+  }
+  enum SpritePixel {
+    Transparent
+    Outline
+    Fill
+    Shade
+  }
+  class SpritePalette <<functions>> {
+    +{static} paletteColor(pixel: SpritePixel, side: Color): optional<Rgba>
+  }
+  class Rgba <<struct>> {
+    +r: uchar
+    +g: uchar
+    +b: uchar
+    +a: uchar
+  }
+  class StandardSprites {
+    +{static} registerAll(catalog: SpriteCatalog&): void
   }
 }
 
@@ -205,6 +243,14 @@ RaylibUI ..> BoardInteraction : crea en run()
 RaylibUI ..> BoardLayout : píxel ↔ casilla
 BoardLayout +-- Point
 BoardInteraction "1" --> "1" GameService : usa
+RaylibUI "1" --> "1" SpriteCatalog : busca el sprite por PieceTypeId
+RaylibUI ..> SpritePalette : arma las texturas
+SpriteCatalog "1" *-- "0..*" PixelSprite
+PixelSprite +-- Placement
+PixelSprite ..> SpritePixel
+SpritePalette ..> SpritePixel
+SpritePalette ..> Rgba
+StandardSprites ..> SpriteCatalog : registra las 6 clásicas
 
 ' ===================== Notas =====================
 note top of GameService
@@ -238,6 +284,14 @@ note bottom of BoardInteraction
   Qué significa cada click, sin raylib
   (se testea sin ventana): seleccionar,
   mover, esperar la pieza de la promoción.
+end note
+
+note bottom of SpriteCatalog
+  **Registry** (§3.4, D-26): sprites por PieceTypeId,
+  registrados en main_raylib.cpp. Sin sprite
+  (find = nullptr) la pieza se dibuja con su letra.
+  Se testea sin ventana; RaylibUI convierte cada
+  sprite en Texture2D con filtro POINT.
 end note
 
 note right of ChessGame

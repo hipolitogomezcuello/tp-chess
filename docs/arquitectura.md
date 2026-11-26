@@ -197,7 +197,8 @@ candidatos (MovementRules) → pseudo-legales (MoveGenerator) → legales (Legal
   ya existentes y no hace falta ninguna subclase. Es lo que la consigna evalúa explícitamente.
 
 ### 3.4 Factory + Registry — creación de piezas
-- **Dónde:** `PieceRegistry`, `PieceFactory`, `StandardPieces`.
+- **Dónde:** `PieceRegistry`, `PieceFactory`, `StandardPieces`. El mismo Registry se repite en el
+  adaptador gráfico: `SpriteCatalog` + `StandardSprites` (sprites por `PieceTypeId`, D-26).
 - **Por qué:** centraliza la creación y cumple OCP: agregar un tipo = registrar, no editar un `switch`.
 
 ### 3.5 Strategy — disposición inicial
@@ -236,7 +237,8 @@ candidatos (MovementRules) → pseudo-legales (MoveGenerator) → legales (Legal
 
 ### 3.11 Humble Object — UI gráfica
 - **Dónde:** `RaylibUI` (lo único que toca raylib: dibujar y leer eventos) delega las decisiones en
-  `BoardInteraction` (qué significa cada click) y `BoardLayout` (píxel ↔ casilla), que no conocen raylib.
+  `BoardInteraction` (qué significa cada click), `BoardLayout` (píxel ↔ casilla) y los sprites
+  (`PixelSprite`, `SpritePalette`, `SpriteCatalog`), que no conocen raylib.
 - **Por qué:** lo que necesita una ventana queda sin lógica, y la lógica se testea sin ventana
   (`chess_raylib_tests`). Ver D-22.
 
@@ -314,11 +316,20 @@ resultado esperado y se devuelve en `MoveResult`. Las excepciones quedan para er
   un destino resaltado, esperar la elección de la pieza en una promoción (`promotionChoices`, D-19),
   cancelar, deshacer y rehacer. Solo conoce `GameService`.
 - `BoardLayout`: traduce píxeles ↔ casillas (negras arriba) para cualquier tamaño de tablero.
+- Sprites pixel art (D-26): `PixelSprite` es un mapa de 16×16 escrito como texto (`.` transparente,
+  `o` contorno, `f` relleno, `s` sombra) que se valida al construirse y calcula su escala entera y su
+  posición centrada en una casilla (`placedIn`, con un píxel de sprite de margen por lado).
+  `paletteColor` (`SpritePalette`) da el color de cada código para cada bando, con contorno oscuro en
+  los dos. `SpriteCatalog` guarda un sprite por `PieceTypeId`; `StandardSprites::registerAll` registra
+  los seis clásicos desde `main_raylib.cpp`. `RaylibUI` convierte cada sprite en un `Texture2D` con
+  `TEXTURE_FILTER_POINT` la primera vez que lo dibuja; si `find` da `nullptr`, dibuja la letra.
+  No hay archivos de imagen: el ejecutable no necesita assets al lado.
 - Controles: click izquierdo elige y mueve; `Esc` o click derecho cancelan; `U` deshace y `R` rehace.
   `Esc` no cierra la ventana (se cierra con la X).
 - La fuente por defecto de raylib solo trae ASCII: los textos de la ventana van sin tildes. raylib
   define un `::Color` global, así que en el adaptador el color de las piezas se escribe siempre `domain::Color`.
-- `BoardLayout` y `BoardInteraction` se testean en `chess_raylib_tests` sin abrir ninguna ventana.
+- `BoardLayout`, `BoardInteraction`, `PixelSprite`, `SpritePalette`, `SpriteCatalog` y `StandardSprites`
+  se testean en `chess_raylib_tests` sin abrir ninguna ventana.
 
 ## 7. Flujo de una jugada (resumen del diagrama de secuencia)
 
