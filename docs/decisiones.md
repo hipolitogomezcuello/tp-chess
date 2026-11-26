@@ -46,6 +46,7 @@
 | D-25 | Código sin comentarios: los nombres explican, `docs/` justifica | Proceso |
 | D-26 | Sprites pixel art en código, registrados por `PieceTypeId` | Adaptadores |
 | D-27 | Pantalla de título: pantallas con un enum y partidas con una fábrica inyectada | Adaptadores |
+| D-28 | Release con runtime estático: ejecutables sin DLLs al lado | Build |
 
 **Cómo leerlo en la defensa:** D-02, D-03, D-08 y D-09 explican por qué agregar una pieza o cambiar
 el tablero no toca código existente; D-01, D-16, D-17 y D-22, por qué la UI se cambia sin tocar el
@@ -455,3 +456,24 @@ pausa), el enum obligaría a sumar `if` por pantalla en `RaylibUI` y convendría
 tablero o de piezas, la fábrica tendría que recibir esa elección como parámetro.
 **Dónde en el código:** `src/adapters/raylib/Menu`, `ScreenFlow`, `RaylibUI` (`GameScreen`,
 `GameFactory`), `app/main_raylib.cpp`, `tests/adapters/raylib/MenuTest.cpp`, `ScreenFlowTest.cpp`.
+
+## D-28 — Release con runtime estático: ejecutables sin DLLs al lado
+**Estado:** vigente
+**Qué:** la opción `CHESS_STATIC_RUNTIME` (encendida por defecto) enlaza el runtime de C++ de forma
+estática: con MSVC, `CMAKE_MSVC_RUNTIME_LIBRARY` = `MultiThreaded` (`/MT`, `/MTd` en Debug); con
+MinGW, `-static`. Vale para todos los targets, incluidos raylib y GoogleTest. raylib ya se compilaba
+como librería estática. El release v1.0.0 es un `.zip` con `chess_console.exe`, `chess_raylib.exe` y un
+`LEEME.txt`, armado con `scripts/empaquetar-release.ps1` y publicado en GitHub Releases.
+**Por qué:** con `/MD` los `.exe` dependían de `MSVCP140.dll` y `VCRUNTIME140.dll`, que no están en una
+máquina sin el Visual C++ Redistributable: el que descarga el `.zip` vería un error al abrirlo. Con
+`/MT` solo dependen de DLLs de Windows (`KERNEL32`, `USER32`, `GDI32`, `WINMM`, `SHELL32`, verificado con
+`dumpbin /dependents`). El runtime tiene que ser el mismo en todos los targets: mezclar `/MT` y `/MD`
+da errores de enlace o dos heaps distintos. Por eso GoogleTest pasa a `gtest_force_shared_crt=OFF` y se
+fija `CMAKE_POLICY_DEFAULT_CMP0091=NEW`, porque raylib declara un CMake mínimo viejo y si no ignoraría la
+variable. Los sprites en código (D-26) hacen que no haya otros archivos que copiar.
+**Cuándo se rompería:** si el proyecto pasara a usar DLLs propias (un plugin por pieza, raylib
+compartida), cada DLL tendría su propia copia del runtime y pasar objetos de la biblioteca estándar
+entre ellas sería peligroso: habría que volver a `/MD` y distribuir el redistributable o un instalador.
+También si hubiera que publicar para Linux o macOS, donde enlazar todo estático no es lo habitual.
+**Dónde en el código:** `CMakeLists.txt` (`CHESS_STATIC_RUNTIME`), `tests/CMakeLists.txt`,
+`scripts/empaquetar-release.ps1`, `docs/release/`.

@@ -97,6 +97,8 @@ cmake -S . -B build                 # configurar (la primera vez descarga Google
 cmake --build build                 # compilar todo
 ctest --test-dir build --output-on-failure   # correr tests
 ./build/app/chess_console           # jugar por consola (en Windows: build\app\Debug\chess_console.exe con MSVC)
+cmake --build build --config Release                      # ejecutables de release (runtime estático, D-28)
+powershell -File scripts/empaquetar-release.ps1 -Version v1.0.0   # arma dist/*.zip para GitHub Releases
 ```
 
 Con el generador de Visual Studio (multi-config), `ctest` necesita la configuración:

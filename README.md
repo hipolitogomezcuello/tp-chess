@@ -11,6 +11,12 @@ Ajedrez en C++17 con arquitectura hexagonal. TPO de Ingeniería de Software (3.4
 - Diagramas exportados (SVG/PNG): [`docs/diagramas/export/`](docs/diagramas/export/)
 - Presentación para la exposición: [`docs/presentacion/tpo-ajedrez.pptx`](docs/presentacion/tpo-ajedrez.pptx)
 
+## Jugar sin compilar
+
+En [Releases](https://github.com/hipolitogomezcuello/tp-chess/releases) hay un `.zip` para Windows con
+`chess_raylib.exe` (interfaz gráfica) y `chess_console.exe` (consola). No requiere instalar nada; ver
+las [notas de la versión](docs/release/notas-v1.0.0.md).
+
 ## Requisitos
 
 - Un compilador con soporte de C++17: MSVC (Visual Studio 2019 o posterior), MinGW, gcc o clang.

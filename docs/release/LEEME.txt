@@ -1,0 +1,35 @@
+TPO Ajedrez v1.0.0
+==================
+
+Juego de ajedrez para dos jugadores en la misma computadora.
+Trabajo practico de Ingenieria de Software (3.4.214).
+
+Contenido
+---------
+  chess_raylib.exe   Interfaz grafica (recomendada).
+  chess_console.exe  Interfaz de consola.
+
+No hace falta instalar nada: abrir el .exe con doble click.
+Requisitos: Windows 10 u 11 de 64 bits. La interfaz grafica necesita OpenGL 3.3.
+
+Interfaz grafica (chess_raylib.exe)
+-----------------------------------
+  - En la pantalla de titulo elegir "Nueva partida" o "Salir".
+  - Click en una pieza propia para elegirla; se marcan sus destinos.
+  - Click en un destino marcado para mover.
+  - En una promocion aparece un cuadro para elegir la pieza.
+  - U: deshacer   R: rehacer   Esc o click derecho: cancelar.
+  - Al terminar la partida, "Volver al titulo" vuelve a la pantalla de titulo.
+
+Interfaz de consola (chess_console.exe)
+---------------------------------------
+  e2 e4      mover de e2 a e4
+  e7 e8 q    promocion (q, r, b o n)
+  moves e2   ver los destinos de la pieza en e2
+  undo       deshacer
+  redo       rehacer
+  help       lista de comandos
+  quit       salir
+
+Reglas incluidas: jaque, jaque mate, ahogado, enroque, captura al paso,
+promocion, deshacer y rehacer.

@@ -58,6 +58,8 @@ El adaptador de consola es una librería aparte para poder testearlo (notación,
 comandos con streams en memoria) sin mezclar esos tests con los del núcleo: `chess_tests` sigue sin
 conocer ningún adaptador. El de raylib sigue el mismo esquema; raylib se descarga con `FetchContent`
 (5.5) y se puede apagar con `-DCHESS_BUILD_RAYLIB=OFF` si no hay internet o no se necesita la UI gráfica.
+Todos los targets enlazan el runtime de C++ estático (`CHESS_STATIC_RUNTIME`, D-28), así los `.exe` del
+release no necesitan DLLs al lado.
 
 ---
 

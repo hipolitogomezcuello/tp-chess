@@ -7,8 +7,12 @@ FetchContent_Declare(
     URL https://github.com/google/googletest/releases/download/v1.15.2/googletest-1.15.2.tar.gz
     DOWNLOAD_EXTRACT_TIMESTAMP TRUE
 )
-# MSVC: usar el mismo runtime (/MD) que el resto del proyecto.
-set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+# MSVC: usar el mismo runtime que el resto del proyecto (estático salvo CHESS_STATIC_RUNTIME=OFF).
+if(CHESS_STATIC_RUNTIME)
+    set(gtest_force_shared_crt OFF CACHE BOOL "" FORCE)
+else()
+    set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+endif()
 # No instalar GoogleTest junto con el proyecto.
 set(INSTALL_GTEST OFF CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)

@@ -180,11 +180,11 @@ Leyenda: `[ ]` pendiente · `[~]` en curso · `[x]` hecha
 
 ## Fase 13 — Release en GitHub
 
-- [ ] **13.1** Build de release: `cmake --build build --config Release` con los dos ejecutables
+- [x] **13.1** Build de release: `cmake --build build --config Release` con los dos ejecutables
   (`chess_console` y `chess_raylib`), compilados sin dependencias externas en tiempo de ejecución
   (raylib estático; con MinGW, runtime estático).
   - Probar los `.exe` en una carpeta limpia, fuera de `build/`, para confirmar que no les falta nada.
-- [ ] **13.2** Versión y notas: elegir el número (p. ej. `v1.0.0`), escribir las notas de la versión en
+- [x] **13.2** Versión y notas: elegir el número (p. ej. `v1.0.0`), escribir las notas de la versión en
   español (qué incluye, cómo jugar en cada UI, requisitos) y crear el tag anotado.
 - [ ] **13.3** Publicar en GitHub Releases con `gh release create`, adjuntando un `.zip` con los dos
   ejecutables y un `LEEME.txt`.
