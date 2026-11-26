@@ -169,13 +169,13 @@ Leyenda: `[ ]` pendiente · `[~]` en curso · `[x]` hecha
 
 ## Fase 12 — Pantalla de título
 
-- [ ] **12.1** Pantalla de título en la UI gráfica con dos botones: **Nueva partida** y **Salir**. Nada más.
+- [x] **12.1** Pantalla de título en la UI gráfica con dos botones: **Nueva partida** y **Salir**. Nada más.
   - Nueva partida arranca una partida desde la posición inicial; Salir cierra la ventana.
   - Al terminar una partida (mate o ahogado), poder volver a la pantalla de título.
   - Mismo estilo retro que los sprites de la fase 11.
   - La lógica de los botones (qué botón está bajo el mouse, qué acción dispara) va en una clase
     testeable sin ventana, siguiendo el Humble Object de D-22.
-- [ ] **12.2** UML, `decisiones.md` (si se introduce un patrón, p. ej. State para las pantallas, también
+- [x] **12.2** UML, `decisiones.md` (si se introduce un patrón, p. ej. State para las pantallas, también
   el catálogo de `arquitectura.md`) y re-exportar los diagramas. `src/core/` no se toca.
 
 ## Fase 13 — Release en GitHub

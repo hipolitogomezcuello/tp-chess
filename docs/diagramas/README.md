@@ -52,7 +52,7 @@ Se recorrió cada header de `src/` contra los diagramas de clases, comparando cl
 | `chess::application` | `ChessGame`, `GamePhase`, `InProgressPhase`, `GameOverPhase`, `MoveCommand`, `MoveHistory` | Coinciden (incluidos los privados de `ChessGame` que usa el diagrama de secuencia). |
 | `chess::ports` | `GameService`, `GameObserver`, `MoveResult`, `MoveError` | Coinciden. |
 | `chess::adapters::console` | `ConsoleUI`, `ConsoleRenderer`, `AlgebraicNotation` | Coinciden. |
-| `chess::adapters::raylib` | `RaylibUI`, `BoardInteraction`, `BoardLayout`, `PixelSprite`, `SpritePalette`, `SpriteCatalog`, `StandardSprites` | Faltaban el struct `BoardLayout::Point` (retorno de `topLeftOf`) y el estado privado de `BoardInteraction` (agregados). Los sprites se sumaron en la fase 11 (D-26). |
+| `chess::adapters::raylib` | `RaylibUI`, `BoardInteraction`, `BoardLayout`, `PixelSprite`, `SpritePalette`, `SpriteCatalog`, `StandardSprites` | Faltaban el struct `BoardLayout::Point` (retorno de `topLeftOf`) y el estado privado de `BoardInteraction` (agregados). Los sprites se sumaron en la fase 11 (D-26); `Menu`, `ScreenFlow` y la `GameFactory` de `RaylibUI`, en la fase 12 (D-27). |
 
 Las relaciones también se contrastaron con los miembros: referencias `const X&` → asociación (`-->`),
 miembros por valor → composición (`*--`), `shared_ptr` compartido → asociación `0..*` → `1`. El diagrama

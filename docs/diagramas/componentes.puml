@@ -32,6 +32,8 @@ package "chess::adapters" as adapters <<Adaptador>> {
     [BoardLayout]
     [SpriteCatalog]
     [StandardSprites]
+    [Menu]
+    [ScreenFlow]
   }
 }
 
@@ -75,6 +77,8 @@ package "tests" as tests {
 [RaylibUI] --> [BoardInteraction] : clicks
 [RaylibUI] --> [BoardLayout] : píxel ↔ casilla
 [RaylibUI] --> [SpriteCatalog] : sprites
+[RaylibUI] --> [Menu] : botones
+[RaylibUI] --> [ScreenFlow] : pantallas
 [StandardSprites] --> [SpriteCatalog] : registra
 [BoardInteraction] --> GameService : usa
 [RaylibUI] --> raylibLib

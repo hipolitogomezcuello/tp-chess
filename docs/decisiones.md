@@ -45,6 +45,7 @@
 | D-24 | Alcance opcional que se dejó afuera | Alcance |
 | D-25 | Código sin comentarios: los nombres explican, `docs/` justifica | Proceso |
 | D-26 | Sprites pixel art en código, registrados por `PieceTypeId` | Adaptadores |
+| D-27 | Pantalla de título: pantallas con un enum y partidas con una fábrica inyectada | Adaptadores |
 
 **Cómo leerlo en la defensa:** D-02, D-03, D-08 y D-09 explican por qué agregar una pieza o cambiar
 el tablero no toca código existente; D-01, D-16, D-17 y D-22, por qué la UI se cambia sin tocar el
@@ -430,3 +431,27 @@ estorbaría: convendría cargar imágenes (o incrustarlas en el binario como byt
 `PixelSprite` y `SpritePalette` tendrían que crecer.
 **Dónde en el código:** `src/adapters/raylib/PixelSprite`, `SpritePalette`, `SpriteCatalog`,
 `StandardSprites`, `RaylibUI` (`SpriteTextures`), `app/main_raylib.cpp`.
+
+## D-27 — Pantalla de título: pantallas con un enum y partidas con una fábrica inyectada
+**Estado:** vigente
+**Qué:** la UI gráfica arranca en una pantalla de título con dos botones, **Nueva partida** y
+**Salir**; al terminar una partida (mate o ahogado) aparece **Volver al titulo**. Las pantallas son un
+`enum class Screen { Title, Playing, Closed }` y `ScreenFlow::choose(MenuAction)` decide a cuál se pasa;
+una acción que no corresponde a la pantalla actual se ignora. Los botones son un `Menu` (una columna de
+`MenuButton` con su `MenuAction`) que responde qué botón está bajo el mouse. Cada partida nueva la crea
+una `GameFactory` (`std::function<std::unique_ptr<GameService>()>`) que `main_raylib.cpp` le pasa a
+`RaylibUI` por constructor.
+**Por qué:** `Menu` y `ScreenFlow` no conocen raylib y se testean sin ventana, igual que
+`BoardInteraction` (D-22); `RaylibUI` sigue sin decidir nada. Con dos pantallas y tres transiciones, un
+State con una clase por pantalla habría sido más código que lógica: el enum y un método alcanzan, y la
+pantalla de juego (`GameScreen`, en el `.cpp` de `RaylibUI`) es solo dibujo. La fábrica hace que
+"empezar de nuevo" sea crear una `ChessGame` nueva en vez de agregarle un `reset` al puerto: el núcleo
+no cambia (`git diff -- src/core` vacío) y la partida nueva arranca sin historial ni observers viejos.
+`RaylibUI` solo ve `GameService`; quién arma la partida (reglas, posición inicial) sigue siendo cosa del
+composition root (D-17).
+**Cuándo se rompería:** si hubiera más pantallas con comportamiento propio (opciones, elegir variante,
+pausa), el enum obligaría a sumar `if` por pantalla en `RaylibUI` y convendría un State del adaptador
+(una clase por pantalla con `update` y `draw`). Si el menú tuviera que elegir entre variantes de
+tablero o de piezas, la fábrica tendría que recibir esa elección como parámetro.
+**Dónde en el código:** `src/adapters/raylib/Menu`, `ScreenFlow`, `RaylibUI` (`GameScreen`,
+`GameFactory`), `app/main_raylib.cpp`, `tests/adapters/raylib/MenuTest.cpp`, `ScreenFlowTest.cpp`.

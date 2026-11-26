@@ -232,13 +232,14 @@ candidatos (MovementRules) → pseudo-legales (MoveGenerator) → legales (Legal
 
 ### 3.10 Inyección de dependencias manual + Composition Root
 - **Dónde:** constructores de `ChessGame`, `RulesEngine`, etc. El armado se hace en `app/main_*.cpp`.
+  `main_raylib.cpp` le pasa a `RaylibUI` una `GameFactory` que crea cada partida nueva (D-27).
 - **Por qué:** las dependencias quedan visibles y en los tests se inyectan fakes. No hay singletons
   ni estado global.
 
 ### 3.11 Humble Object — UI gráfica
 - **Dónde:** `RaylibUI` (lo único que toca raylib: dibujar y leer eventos) delega las decisiones en
   `BoardInteraction` (qué significa cada click), `BoardLayout` (píxel ↔ casilla) y los sprites
-  (`PixelSprite`, `SpritePalette`, `SpriteCatalog`), que no conocen raylib.
+  (`PixelSprite`, `SpritePalette`, `SpriteCatalog`) y los menús (`Menu`, `ScreenFlow`), que no conocen raylib.
 - **Por qué:** lo que necesita una ventana queda sin lógica, y la lógica se testea sin ventana
   (`chess_raylib_tests`). Ver D-22.
 
@@ -308,7 +309,8 @@ resultado esperado y se devuelve en `MoveResult`. Las excepciones quedan para er
 - `AlgebraicNotation`: convierte `"e2"` ↔ `Position`. Es una cuestión de presentación, por eso **no** está en el dominio.
 
 ### 6.2 raylib (`src/adapters/raylib`)
-- `RaylibUI`: ventana y loop de raylib. Dibuja el tablero según sus dimensiones, las piezas como un
+- `RaylibUI`: ventana y loop de raylib. Arranca en la pantalla de título y crea cada partida con la
+  `GameFactory` que recibe por constructor (D-27); se registra como observer de cada partida nueva. Dibuja el tablero según sus dimensiones, las piezas como un
   círculo con `symbol()`, la última jugada, la pieza elegida con sus destinos y el rey en jaque (por el
   trait `isRoyal`). Implementa `GameObserver` para los avisos de jaque, mate y ahogado. Es la única
   clase que incluye `raylib.h`, y solo en el `.cpp`.
@@ -324,12 +326,17 @@ resultado esperado y se devuelve en `MoveResult`. Las excepciones quedan para er
   los seis clásicos desde `main_raylib.cpp`. `RaylibUI` convierte cada sprite en un `Texture2D` con
   `TEXTURE_FILTER_POINT` la primera vez que lo dibuja; si `find` da `nullptr`, dibuja la letra.
   No hay archivos de imagen: el ejecutable no necesita assets al lado.
+- Pantallas (D-27): `ScreenFlow` pasa de `Title` a `Playing` con **Nueva partida**, a `Closed` con
+  **Salir**, y de `Playing` a `Title` con **Volver al titulo** (el botón aparece cuando la partida
+  termina). `Menu` arma una columna de `MenuButton` y dice cuál está bajo el mouse (`buttonAt`, para
+  resaltarlo) y qué acción dispara un click (`actionAt`). Los botones tienen el estilo retro de los
+  sprites: borde oscuro grueso, sombra sólida y relleno plano.
 - Controles: click izquierdo elige y mueve; `Esc` o click derecho cancelan; `U` deshace y `R` rehace.
   `Esc` no cierra la ventana (se cierra con la X).
 - La fuente por defecto de raylib solo trae ASCII: los textos de la ventana van sin tildes. raylib
   define un `::Color` global, así que en el adaptador el color de las piezas se escribe siempre `domain::Color`.
-- `BoardLayout`, `BoardInteraction`, `PixelSprite`, `SpritePalette`, `SpriteCatalog` y `StandardSprites`
-  se testean en `chess_raylib_tests` sin abrir ninguna ventana.
+- `BoardLayout`, `BoardInteraction`, `PixelSprite`, `SpritePalette`, `SpriteCatalog`, `StandardSprites`,
+  `Menu` y `ScreenFlow` se testean en `chess_raylib_tests` sin abrir ninguna ventana.
 
 ## 7. Flujo de una jugada (resumen del diagrama de secuencia)
 

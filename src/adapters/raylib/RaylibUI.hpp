@@ -1,5 +1,7 @@
 #pragma once
 
+#include <functional>
+#include <memory>
 #include <optional>
 #include <string>
 
@@ -13,11 +15,13 @@
 
 namespace chess::adapters::raylib {
 
+using GameFactory = std::function<std::unique_ptr<ports::GameService>()>;
+
 class RaylibUI : public ports::GameObserver {
 public:
-    explicit RaylibUI(const SpriteCatalog& sprites) : sprites_(sprites) {}
+    RaylibUI(const SpriteCatalog& sprites, GameFactory newGame);
 
-    void run(ports::GameService& game);
+    void run();
 
     void onMoveMade(const domain::Move& move, const domain::GameState& state) override;
     void onCheck(domain::Color colorInCheck) override;
@@ -25,7 +29,10 @@ public:
     void onUndoRedo(const domain::GameState& state) override;
 
 private:
+    std::unique_ptr<ports::GameService> startGame();
+
     const SpriteCatalog& sprites_;
+    GameFactory newGame_;
     std::optional<domain::Move> lastMove_;
     std::string message_;
 };

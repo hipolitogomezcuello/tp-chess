@@ -18,6 +18,8 @@ add_library(chess_raylib_adapter STATIC
     SpritePalette.cpp
     SpriteCatalog.cpp
     StandardSprites.cpp
+    Menu.cpp
+    ScreenFlow.cpp
     RaylibUI.cpp
 )
 

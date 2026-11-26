@@ -1,3 +1,5 @@
+#include <memory>
+
 #include "adapters/raylib/RaylibUI.hpp"
 #include "adapters/raylib/SpriteCatalog.hpp"
 #include "adapters/raylib/StandardSprites.hpp"
@@ -21,12 +23,13 @@ int main() {
 
     adapters::raylib::SpriteCatalog sprites;
     adapters::raylib::StandardSprites::registerAll(sprites);
-    adapters::raylib::RaylibUI ui(sprites);
 
-    application::ChessGame game(rules, domain::GameState(startingPosition.createInitialBoard(factory)));
-    game.addObserver(ui);
+    const adapters::raylib::GameFactory newGame = [&]() -> std::unique_ptr<ports::GameService> {
+        return std::make_unique<application::ChessGame>(
+            rules, domain::GameState(startingPosition.createInitialBoard(factory)));
+    };
 
-    ports::GameService& service = game;
-    ui.run(service);
+    adapters::raylib::RaylibUI ui(sprites, newGame);
+    ui.run();
     return 0;
 }

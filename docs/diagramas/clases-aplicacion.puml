@@ -139,13 +139,15 @@ package "chess::adapters::console" {
 
 package "chess::adapters::raylib" {
   class RaylibUI <<Adapter>> <<HumbleObject>> {
-    +RaylibUI(sprites: const SpriteCatalog&)
-    +run(game: GameService&): void
+    +RaylibUI(sprites: const SpriteCatalog&, newGame: GameFactory)
+    +run(): void
     +onMoveMade(move: const Move&, state: const GameState&): void
     +onCheck(colorInCheck: Color): void
     +onGameOver(result: GameStatus, sideToMove: Color): void
     +onUndoRedo(state: const GameState&): void
+    -startGame(): unique_ptr<GameService>
     -sprites_: const SpriteCatalog&
+    -newGame_: GameFactory
     -lastMove_: optional<Move>
     -message_: string
   }
@@ -210,6 +212,51 @@ package "chess::adapters::raylib" {
   class StandardSprites {
     +{static} registerAll(catalog: SpriteCatalog&): void
   }
+  class GameFactory <<Factory>> <<alias>> {
+    function<unique_ptr<GameService>()>
+  }
+  class Menu {
+    +Menu(entries: const vector<MenuEntry>&, column: ButtonColumn)
+    +buttons(): const vector<MenuButton>&
+    +buttonAt(x: int, y: int): const MenuButton*
+    +actionAt(x: int, y: int): optional<MenuAction>
+    -buttons_: vector<MenuButton>
+  }
+  class MenuEntry <<struct>> {
+    +label: string
+    +action: MenuAction
+  }
+  class ButtonColumn <<struct>> {
+    +centerX: int
+    +top: int
+    +buttonWidth: int
+    +buttonHeight: int
+    +gap: int
+  }
+  class MenuButton <<struct>> {
+    +label: string
+    +action: MenuAction
+    +x: int
+    +y: int
+    +width: int
+    +height: int
+    +contains(pixelX: int, pixelY: int): bool
+  }
+  enum MenuAction {
+    NewGame
+    Quit
+    BackToTitle
+  }
+  class ScreenFlow {
+    +current(): Screen
+    +choose(action: MenuAction): void
+    -current_: Screen
+  }
+  enum Screen {
+    Title
+    Playing
+    Closed
+  }
 }
 
 ' ===================== Relaciones =====================
@@ -251,6 +298,16 @@ PixelSprite ..> SpritePixel
 SpritePalette ..> SpritePixel
 SpritePalette ..> Rgba
 StandardSprites ..> SpriteCatalog : registra las 6 clásicas
+RaylibUI "1" *-- "1" GameFactory : crea cada partida nueva
+GameFactory ..> GameService : crea
+RaylibUI ..> ScreenFlow : crea en run()
+RaylibUI ..> Menu : título y "volver al título"
+Menu ..> MenuEntry
+Menu ..> ButtonColumn
+Menu "1" *-- "0..*" MenuButton
+MenuButton ..> MenuAction
+ScreenFlow ..> MenuAction
+ScreenFlow ..> Screen
 
 ' ===================== Notas =====================
 note top of GameService
@@ -284,6 +341,14 @@ note bottom of BoardInteraction
   Qué significa cada click, sin raylib
   (se testea sin ventana): seleccionar,
   mover, esperar la pieza de la promoción.
+end note
+
+note bottom of ScreenFlow
+  Pantallas como máquina de estados chica (D-27):
+  Title --NewGame--> Playing --BackToTitle--> Title;
+  Title --Quit--> Closed. Una acción de otra
+  pantalla se ignora. Menu y ScreenFlow se testean
+  sin ventana; RaylibUI solo dibuja y lee el mouse.
 end note
 
 note bottom of SpriteCatalog
