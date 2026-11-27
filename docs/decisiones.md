@@ -1,61 +1,6 @@
 # Decisiones de diseño — qué / por qué / cuándo se rompería
 
-> Entregable de la materia (consigna §6). Cada decisión **propia del grupo** se registra acá.
-> Formato fijo de tres preguntas. Las decisiones se numeran y **no se borran**: si una se revierte,
-> se marca como *Reemplazada por D-XX* y se agrega la nueva.
->
-> Plantilla:
->
-> ```markdown
-> ## D-XX — Título corto
-> **Estado:** vigente | reemplazada por D-YY
-> **Qué:** la decisión, en una o dos oraciones.
-> **Por qué:** el problema que resuelve y las alternativas descartadas.
-> **Cuándo se rompería:** bajo qué condiciones dejaría de ser una buena decisión.
-> **Dónde en el código:** clases o archivos afectados.
-> ```
-
-## Índice
-
-| # | Decisión | Tema |
-|---|---|---|
-| D-01 | Arquitectura hexagonal (Ports & Adapters) | Arquitectura |
-| D-02 | Piezas por composición de reglas, no por herencia | Extensibilidad |
-| D-03 | `PieceTypeId` abierto (string) en lugar de `enum class` | Extensibilidad |
-| D-04 | Validación en pipeline: pseudo-legal → legal | Reglas |
-| D-05 | Jugadas inválidas como resultado, no como excepción | Puertos |
-| D-06 | Derechos de enroque derivados de `Piece::hasMoved` | Reglas |
-| D-07 | La condición de jaque del enroque la aplica `LegalMoveFilter` | Reglas |
-| D-08 | Promoción: la regla la marca, el jugador elige y el registro valida | Extensibilidad |
-| D-09 | Ninguna regla asume un tablero de 8×8 | Extensibilidad |
-| D-10 | La fase de la partida se deriva del `GameStatus` | Aplicación |
-| D-11 | PlantUML como UML vivo versionado en el repo | Proceso |
-| D-12 | CMake con dependencias vía `FetchContent` | Build |
-| D-13 | Las dependencias se agregan cuando la fase las necesita | Proceso |
-| D-14 | El turno lo valida la aplicación; el filtro usa el color de la pieza | Aplicación |
-| D-15 | `attackedSquares` incluye la casilla de la pieza propia que corta la línea | Reglas |
-| D-16 | Observer como puerto de salida | Puertos |
-| D-17 | Inyección de dependencias manual y composition root | Arquitectura |
-| D-18 | State para la fase de la partida | Aplicación |
-| D-19 | El puerto ofrece las piezas de promoción; la UI no conoce los tipos | Puertos |
-| D-20 | Deshacer con Command + Memento de estado completo | Aplicación |
-| D-21 | raylib como UI gráfica | Adaptadores |
-| D-22 | La lógica de la UI gráfica separada de raylib (Humble Object) | Adaptadores |
-| D-23 | La notación algebraica vive en el adaptador, no en el dominio | Adaptadores |
-| D-24 | Alcance opcional que se dejó afuera | Alcance |
-| D-25 | Código sin comentarios: los nombres explican, `docs/` justifica | Proceso |
-| D-26 | Sprites pixel art en código, registrados por `PieceTypeId` | Adaptadores |
-| D-27 | Pantalla de título: pantallas con un enum y partidas con una fábrica inyectada | Adaptadores |
-| D-28 | Release con runtime estático: ejecutables sin DLLs al lado | Build |
-
-**Cómo leerlo en la defensa:** D-02, D-03, D-08 y D-09 explican por qué agregar una pieza o cambiar
-el tablero no toca código existente; D-01, D-16, D-17 y D-22, por qué la UI se cambia sin tocar el
-núcleo. El paso a paso de esas extensiones está en [`guia-defensa.md`](guia-defensa.md).
-
----
-
 ## D-01 — Arquitectura hexagonal (Ports & Adapters)
-**Estado:** vigente
 **Qué:** el núcleo (`src/core/`) tiene el dominio y los casos de uso y se comunica con el exterior solo
 a través de los puertos `GameService` (entrada) y `GameObserver` (salida). Las UIs son adaptadores.
 **Por qué:** la consigna exige un núcleo sin dependencias externas y testeable sin infraestructura.
@@ -66,7 +11,6 @@ También si el rendimiento exigiera que la UI accediera a estructuras internas, 
 **Dónde en el código:** `src/core/ports/`, `src/adapters/`, `app/`.
 
 ## D-02 — Piezas por composición de reglas, no por herencia
-**Estado:** vigente
 **Qué:** una pieza es un `PieceDefinition` (id + símbolo + lista de `MovementRule` + traits). No existen
 subclases `Rook`, `Knight`, etc.
 **Por qué:** la Reina es Torre + Alfil. Con herencia, se duplica código o se cae en herencia múltiple.
@@ -78,7 +22,6 @@ Si nunca fuera a haber piezas nuevas, la herencia sería más directa de leer.
 **Dónde en el código:** `PieceDefinition`, `Piece`, `MovementRule` y sus implementaciones.
 
 ## D-03 — `PieceTypeId` abierto (string) en lugar de `enum class`
-**Estado:** vigente
 **Qué:** el tipo de pieza se identifica con un id textual registrado en un `PieceRegistry`.
 **Por qué:** un `enum` cerrado obliga a modificarlo, y a modificar cada `switch` que lo usa, para agregar
 una pieza. Eso viola OCP.
@@ -87,7 +30,6 @@ si se quisiera que el compilador verifique la exhaustividad de los casos.
 **Dónde en el código:** `PieceTypeId`, `PieceRegistry`.
 
 ## D-04 — Validación en pipeline: pseudo-legal → legal
-**Estado:** vigente
 **Qué:** las reglas de movimiento generan movimientos sin considerar el jaque, y un `LegalMoveFilter`
 aparte descarta los que dejan al propio rey en jaque simulando la jugada sobre una copia del estado.
 **Por qué:** cada regla se ocupa solo de su geometría (SRP). La lógica de jaque vive en un único lugar
@@ -97,7 +39,6 @@ convendría hacer y deshacer la jugada sobre el mismo estado, o usar bitboards.
 **Dónde en el código:** `MoveGenerator`, `LegalMoveFilter`, `AttackDetector`.
 
 ## D-05 — Jugadas inválidas como resultado, no como excepción
-**Estado:** vigente
 **Qué:** `makeMove` devuelve un `MoveResult` con el motivo del error y no lanza excepciones.
 **Por qué:** una jugada ilegal es parte normal del flujo del juego, no una situación excepcional. Además,
 el adaptador puede mostrar el motivo concreto.
@@ -106,7 +47,6 @@ códigos HTTP, el adaptador traduciría. El núcleo no cambiaría.
 **Dónde en el código:** `MoveResult`, `GameService::makeMove`.
 
 ## D-06 — Derechos de enroque derivados de `Piece::hasMoved`
-**Estado:** vigente
 **Qué:** `GameState` no guarda derechos de enroque. `CastlingRule` los deduce de que el rey y la pieza
 `canCastleWith` no se hayan movido (`Piece::hasMoved()`).
 **Por qué:** es un solo dato en vez de dos que hay que mantener sincronizados. Además funciona en
@@ -118,7 +58,6 @@ los derechos dependen de la posición inicial.
 **Dónde en el código:** `Piece`, `CastlingRule`, `MoveApplier` (marca `hasMoved`).
 
 ## D-07 — La condición de jaque del enroque la aplica `LegalMoveFilter`
-**Estado:** vigente
 **Qué:** `CastlingRule` genera el enroque solo por geometría (piezas sin mover, casillas libres). Que el
 rey no esté en jaque ni atraviese casillas atacadas lo verifica `LegalMoveFilter` para los `Move` de
 tipo `Castling`.
@@ -131,7 +70,6 @@ legalidad (por ejemplo, una interfaz `LegalityCheck` inyectada).
 **Dónde en el código:** `CastlingRule`, `LegalMoveFilter`.
 
 ## D-08 — Promoción: la regla la marca, el jugador elige y el registro valida
-**Estado:** vigente
 **Qué:** `PawnRule` genera un `Move` de tipo `Promotion` sin pieza elegida. `ChessGame` lo completa con
 el `promotion` que pide el jugador y `RulesEngine::canPromoteTo` lo acepta si la definición tiene el
 trait `isPromotable`.
@@ -143,7 +81,6 @@ capturadas", como en algunas variantes), haría falta una política de promoció
 **Dónde en el código:** `PawnRule`, `Move::withPromotion`, `RulesEngine::canPromoteTo`, `ChessGame`.
 
 ## D-09 — Ninguna regla asume un tablero de 8×8
-**Estado:** vigente
 **Qué:** los límites salen siempre de `BoardDimensions`; el doble avance del peón usa `hasMoved()` en
 lugar de "estar en la segunda fila"; la promoción ocurre en la última fila de las dimensiones reales.
 **Por qué:** la defensa puede pedir un tablero de 10×10. Con esto basta escribir otro
@@ -154,7 +91,6 @@ tablero (interfaz `BoardShape`).
 **Dónde en el código:** `BoardDimensions`, `PawnRule`, `SlidingRule`, `LeaperRule`, `StartingPositionProvider`.
 
 ## D-10 — La fase de la partida se deriva del `GameStatus`
-**Estado:** vigente
 **Qué:** `ChessGame` no guarda la fase (`GamePhase`) en el historial. Después de cada jugada, undo o redo
 recalcula el `GameStatus` y elige `InProgressPhase` o `GameOverPhase`.
 **Por qué:** el `GameState` ya alcanza para saber si la partida terminó. Derivar la fase evita
@@ -165,7 +101,6 @@ especiales.
 **Dónde en el código:** `ChessGame::updatePhase`, `GamePhase`.
 
 ## D-11 — PlantUML como UML vivo versionado en el repo
-**Estado:** vigente
 **Qué:** los diagramas son archivos `.puml` en `docs/diagramas/`, editados en el mismo commit que el
 código que describen. Mientras hubo partes sin implementar se marcaron `<<opcional>>`; al cerrar la
 fase 8 ya no queda ninguna.
@@ -183,7 +118,6 @@ grupo pueda regenerarlas.
 **Dónde en el código:** `docs/diagramas/*.puml`, `docs/diagramas/exportar.sh`, `CLAUDE.md` (regla 5).
 
 ## D-12 — CMake con dependencias vía `FetchContent`
-**Estado:** vigente
 **Qué:** el build es CMake ≥ 3.20 y GoogleTest y raylib se descargan con `FetchContent`
 en una versión fija. El núcleo es la librería `chess_core`, que no enlaza nada.
 **Por qué:** funciona igual en MSVC, MinGW, gcc y clang sin instalar paquetes a mano, y la separación en
